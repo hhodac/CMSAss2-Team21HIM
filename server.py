@@ -54,7 +54,7 @@ model_params = {
     "initial_noise": UserSettableParameter(
         "slider", "noise_traders", 25, 1, 100, description="Number of Noise Traders"
     ),
-    "inital_wealth": UserSettableParameter(
+    "initial_wealth": UserSettableParameter(
         "slider", "wealth", 100, 100, 1000, description="Initial wealth of each Trader"
     ),
 }

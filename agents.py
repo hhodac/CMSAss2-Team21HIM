@@ -1,6 +1,6 @@
 from mesa import Agent
 
-class MarketMaker():
+class MarketMaker(Agent):
     """Market maker sets the price at which agents can trade the asset
     based on demand for the asset during the previous time step"""
 

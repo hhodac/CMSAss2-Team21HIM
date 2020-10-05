@@ -7,10 +7,10 @@ from mesa.space import NetworkGrid, MultiGrid
 from agents import Trader, MarketMaker
 
 class Type(Enum):
-    FUNDAMENTALIST = 0
-    TECHNICAL = 1
-    MIMETIC = 2
-    NOISE = 3
+    FUNDAMENTALIST = "FUNDAMENTALIST"
+    TECHNICAL = "TECHNICAL"
+    MIMETIC = "MIMETIC"
+    NOISE = "NOISE"
 
 def get_num_fundamentalist_traders(model):
     """ return number of fundamentalist traders"""
@@ -52,7 +52,7 @@ class HeterogeneityInArtificialMarket(Model):
         "A model for simulating effect of heterogeneous type of traders on an artificial market model."
     )
 
-    verbose = False  # Print-monitoring
+    verbose = True  # Print-monitoring
 
     def __init__(
             self,
