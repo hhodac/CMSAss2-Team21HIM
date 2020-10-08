@@ -3,13 +3,13 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 
-from enum import Enum
-from mesa import Agent, Model
+from mesa import Model
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 from mesa.space import SingleGrid
 
-from agents import Trader, MarketMaker
+from agents import Trader
+from market import MarketMaker
 
 class HeterogeneityInArtificialMarket(Model):
     """A model for simulating effect of heterogenious type of traders on an artificial market model"""
@@ -62,8 +62,10 @@ class HeterogeneityInArtificialMarket(Model):
         self.schedule = RandomActivation(self)
 
         # Initialize GUI grid map
-        # self.grid = MultiGrid(self.height, self.width, torus=True)
         self.grid = SingleGrid(self.width, self.height, torus=True)
+
+        # Initialize market maker
+        self.marketMaker = MarketMaker()
 
         # Initialize traders & networks
         self.generate_traders()
@@ -80,7 +82,7 @@ class HeterogeneityInArtificialMarket(Model):
         for i in range(self.initial_fundamentalist):
             id = self.next_id()
             (x, y) = self.grid.find_empty()
-            ftrader = Trader(id, (x, y), self, "FUNDAMENTALIST", self.initial_wealth)
+            ftrader = Trader(id, (x, y), self, self.marketMaker, "FUNDAMENTALIST", self.initial_wealth)
             self.grid.place_agent(ftrader, (x, y))
             self.schedule.add(ftrader)
             self.ftrader_ids.append(id)
@@ -89,7 +91,7 @@ class HeterogeneityInArtificialMarket(Model):
         for i in range(self.initial_technical):
             id = self.next_id()
             (x, y) = self.grid.find_empty()
-            ttrader = Trader(id, (x, y), self, "TECHNICAL", self.initial_wealth)
+            ttrader = Trader(id, (x, y), self, self.marketMaker, "TECHNICAL", self.initial_wealth)
             self.grid.place_agent(ttrader, (x, y))
             self.schedule.add(ttrader)
             self.ttrader_ids.append(id)
@@ -98,7 +100,7 @@ class HeterogeneityInArtificialMarket(Model):
         for i in range(self.initial_mimetic):
             id = self.next_id()
             (x, y) = self.grid.find_empty()
-            mtrader = Trader(id, (x, y), self, "MIMETIC", self.initial_wealth)
+            mtrader = Trader(id, (x, y), self, self.marketMaker, "MIMETIC", self.initial_wealth)
             self.grid.place_agent(mtrader, (x, y))
             self.schedule.add(mtrader)
             self.mtrader_ids.append(id)
@@ -107,7 +109,7 @@ class HeterogeneityInArtificialMarket(Model):
         for i in range(self.initial_noise):
             id = self.next_id()
             (x, y) = self.grid.find_empty()
-            ntrader = Trader(id, (x, y), self, "NOISE", self.initial_wealth)
+            ntrader = Trader(id, (x, y), self, self.marketMaker, "NOISE", self.initial_wealth)
             self.grid.place_agent(ntrader, (x, y))
             self.schedule.add(ntrader)
             self.ntrader_ids.append(id)
@@ -139,6 +141,7 @@ class HeterogeneityInArtificialMarket(Model):
 
     def step(self):
         self.schedule.step()
+        self.marketMaker.update()
         pass
 
     def run_model(self, year_lapse=5):

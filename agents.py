@@ -1,15 +1,5 @@
 from mesa import Agent
 
-class MarketMaker(Agent):
-    """Market maker sets the price at which agents can trade the asset
-    based on demand for the asset during the previous time step"""
-
-    def __init__(self):
-        pass
-
-    def stockPriceFormation(self):
-        pass
-
 class Trader(Agent):
     """Represents heterogenious type of traders in the artificial market model"""
 
@@ -17,7 +7,7 @@ class Trader(Agent):
     x = None
     y = None
 
-    def __init__(self, unique_id, pos, model, type, wealth):
+    def __init__(self, unique_id, pos, model, marketMaker, type, wealth):
         """Generate a trader with specific type
 
         :param type: FUNDAMENTALIST, TECHNICAL, MIMETIC, NOISE
@@ -26,6 +16,7 @@ class Trader(Agent):
         self.pos = pos
         self.type = type
         self.wealth = wealth
+        self.marketMaker = marketMaker
         pass
 
     def getType(self):
