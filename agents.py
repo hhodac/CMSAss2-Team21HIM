@@ -30,7 +30,20 @@ class Trader(Agent):
 
     def behaviorFundamentalist(self):
         """Describe trading behavior of fundamentalist trader"""
-        pass
+
+        self.prev_pos = self.pos
+        self.V_F = self.V + self.v_F
+
+        if (self.V_F - self.P) > self.t_F or (self.V_F - self.P) < -self.t_F:
+            self.pos = self.V_F - self.P
+        elif (self.V_F - self.P) < self.t_F or (self.V_F - self.P) > -self.t_F:
+            self.pos = 0
+        elif (self.V_F - self.P) > self.T_F or (self.V_F - self.P) < -self.T_F:
+            self.pos = self.V_F - self.P
+
+        self.order = self.pos - self.prev_pos # Use an array
+
+        return self.order
 
     def behaviorTechnical(self):
         """Describe trading behavior of technical trader"""
