@@ -3,7 +3,8 @@ from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.modules import ChartModule
 from mesa.visualization.modules import CanvasGrid
 
-from agents import Trader, MarketMaker
+from agents import Trader
+from market import MarketMaker
 from model import HeterogeneityInArtificialMarket
 
 grid_rows = 50
@@ -34,8 +35,6 @@ def trader_portrayal(agent):
                      "Color": TRADER_COLOR[agent.getType()],
                      "Layer": 0}
 
-    elif type(agent) is MarketMaker:
-        pass
 
     return portrayal
 
@@ -65,17 +64,19 @@ canvas_element = CanvasGrid(
 
 chart_element = ChartModule(
     [
-        {"Label": "Fundamentalist", "Color": TRADER_COLOR["FUNDAMENTALIST"]},
-        {"Label": "Technical", "Color": TRADER_COLOR["TECHNICAL"]},
-        {"Label": "Mimetic", "Color": TRADER_COLOR["MIMETIC"]},
-        {"Label": "Noise", "Color": TRADER_COLOR["NOISE"]},
-    ]
+        # {"Label": "Fundamentalist", "Color": TRADER_COLOR["FUNDAMENTALIST"]},
+        # {"Label": "Technical", "Color": TRADER_COLOR["TECHNICAL"]},
+        # {"Label": "Mimetic", "Color": TRADER_COLOR["MIMETIC"]},
+        # {"Label": "Noise", "Color": TRADER_COLOR["NOISE"]},
+        {"Label": "Price", "Color": '#FF0000'},
+        {"Label": "FundamentalPrice", "Color": '#00FF00'},
+    ]#, data_collector_name='datacollector'
 )
 
 # create instance of Mesa ModularServer
 server = ModularServer(
     model_cls=HeterogeneityInArtificialMarket,
-    visualization_elements=[canvas_element],
+    visualization_elements=[canvas_element, chart_element],
     name="Artificial Market",
     model_params=model_params,
 )
