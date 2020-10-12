@@ -1,5 +1,5 @@
 import networkx as nx
-import numpy as np
+from networkx.generators.random_graphs import watts_strogatz_graph
 import random
 import matplotlib.pyplot as plt
 
@@ -24,6 +24,12 @@ fund_max_threshold_min = 2.0
 fund_max_threshold_max = 5.0
 fund_min_threshold_min = -0.5
 fund_min_threshold_max = 1
+
+def getMarketCurrentPrice(model):
+    return model.marketMaker.getCurrentPrice()
+
+def getMarketFundamentalPrice(model):
+    return model.marketMaker.getFundamentalPrice()
 
 class HeterogeneityInArtificialMarket(Model):
     """A model for simulating effect of heterogenious type of traders on an artificial market model"""
@@ -62,15 +68,13 @@ class HeterogeneityInArtificialMarket(Model):
         self.initial_mimetic = initial_mimetic
         self.initial_noise = initial_noise
         self.initial_wealth = initial_wealth
+        self.verbose = True
 
         # ID list of agent type
         self.ftrader_ids = []
         self.ttrader_ids = []
         self.mtrader_ids = []
         self.ntrader_ids = []
-
-        # Initialize network
-        self.G = nx.Graph()
 
         # Initialize schedule to activate agent randomly
         self.schedule = RandomActivation(self)
@@ -83,7 +87,17 @@ class HeterogeneityInArtificialMarket(Model):
 
         # Initialize traders & networks
         self.generate_traders()
-        self.generate_mimetic_trader_networks()
+        self.mimetic_network = self.generate_mimetic_trader_networks()
+        self.small_world = self.generate_small_world_networks()
+
+        # Data collector for chart visualization
+        self.datacollector = DataCollector(
+            model_reporters={
+                "Price": getMarketCurrentPrice,
+                "FundamentalPrice": getMarketFundamentalPrice,
+            }
+        )
+        # self.datacollector.collect(self)
 
         pass
 
@@ -130,28 +144,50 @@ class HeterogeneityInArtificialMarket(Model):
 
         pass
 
+    def generate_small_world_networks(self):
+        total_agents = sum([self.initial_fundamentalist,
+                            self.initial_technical,
+                            self.initial_mimetic,
+                            self.initial_noise])
+        small_world_network = watts_strogatz_graph(
+            n=total_agents,
+            k=5,                    # k nearest neighbours
+            p=0.5,                  # probability of rewiring each edge
+            seed=1234
+        )
+
+        # Debug = visualization
+        # pos = nx.circular_layout(self.small_world)
+        # plt.figure(figsize = (12, 12))
+        # nx.draw_networkx(self.small_world, pos)
+        # plt.show()
+        return small_world_network
+
     def generate_mimetic_trader_networks(self):
         """Generate mimetic trader networks.
         Each mimetic trader is assigned in a network with 5 other agents,
         drawn from (fundamentalist & technical) traders.
 
         """
+        mimetic_network = nx.Graph()
+
         # Generate graph and networks of mimetic traders
-        self.G.add_nodes_from([a.unique_id for a in self.schedule.agents])
+        mimetic_network.add_nodes_from([a.unique_id for a in self.schedule.agents])
         # Create list of agents for mimetic traders to follow
         l = self.ftrader_ids + self.ttrader_ids
         # Randomly assign 5 agents in the list to every mimetic trader
         for mimetic_id in self.mtrader_ids:
             random_pick_agent_ids = random.sample(l, 5)
             l_pairs = list([[mimetic_id, agent_id] for agent_id in random_pick_agent_ids])
-            self.G.add_edges_from(l_pairs)
+            mimetic_network.add_edges_from(l_pairs)
 
         ##### Debug #####
-        # nx.draw(self.G, with_labels=True, font_weight='bold')
+        # nx.draw(self.mimetic_network, with_labels=True, font_weight='bold')
         # plt.show()
-        # print(self.G.number_of_edges())
-        pass
-    
+        # print(self.mimetic_network.number_of_edges())
+
+        return mimetic_network
+
     # Get the fundamental value perception variability from an uniform distribution.
     def get_fund_val_perception_var(self):
         return utils.drawFromNormal(fund_val_perception_var_min, fund_val_perception_var_max)
@@ -166,7 +202,16 @@ class HeterogeneityInArtificialMarket(Model):
 
     def step(self):
         self.schedule.step()
-        # self.marketMaker.update()
+        self.marketMaker.updatePrice()
+        self.datacollector.collect(self)
+        if self.verbose:
+            print(
+                [
+                    self.schedule.time,
+                    self.marketMaker.getCurrentPrice(),
+                    self.marketMaker.getFundamentalPrice()
+                ]
+            )
         pass
 
     def run_model(self, year_lapse=5):
@@ -183,6 +228,7 @@ class HeterogeneityInArtificialMarket(Model):
             print("Initial number technical: ", self.initial_technical)
             print("Initial number mimetic: ", self.initial_mimetic)
             print("Initial number noise: ", self.initial_noise)
+            print("Current market price: :", self.marketMaker.getCurrentPrice())
 
         total_time_lapse = 255 * year_lapse
         for i in range(total_time_lapse):
