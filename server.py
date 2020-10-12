@@ -3,7 +3,8 @@ from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.modules import ChartModule
 from mesa.visualization.modules import CanvasGrid
 
-from agents import Trader, MarketMaker
+from trader import Trader
+from market import MarketMaker
 from model import HeterogeneityInArtificialMarket
 
 grid_rows = 50

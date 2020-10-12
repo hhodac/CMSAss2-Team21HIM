@@ -8,8 +8,22 @@ from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 from mesa.space import SingleGrid
 
-from agents import Trader
+from trader import Trader
+from fundamentalist import Fundamentalist
+from technical import Technical
+from mimetic import Mimetic
+from noise import Noise
+
 from market import MarketMaker
+import utils
+
+# Global variables
+fund_val_perception_var_min = -8.0
+fund_val_perception_var_max = 8.0
+fund_max_threshold_min = 2.0
+fund_max_threshold_max = 5.0
+fund_min_threshold_min = -0.5
+fund_min_threshold_max = 1
 
 class HeterogeneityInArtificialMarket(Model):
     """A model for simulating effect of heterogenious type of traders on an artificial market model"""
@@ -82,7 +96,7 @@ class HeterogeneityInArtificialMarket(Model):
         for i in range(self.initial_fundamentalist):
             id = self.next_id()
             (x, y) = self.grid.find_empty()
-            ftrader = Trader(id, (x, y), self, self.marketMaker, "FUNDAMENTALIST", self.initial_wealth)
+            ftrader = Fundamentalist(id, (x, y), self, "FUNDAMENTALIST", self.initial_wealth)
             self.grid.place_agent(ftrader, (x, y))
             self.schedule.add(ftrader)
             self.ftrader_ids.append(id)
@@ -91,7 +105,7 @@ class HeterogeneityInArtificialMarket(Model):
         for i in range(self.initial_technical):
             id = self.next_id()
             (x, y) = self.grid.find_empty()
-            ttrader = Trader(id, (x, y), self, self.marketMaker, "TECHNICAL", self.initial_wealth)
+            ttrader = Trader(id, (x, y), self, "TECHNICAL", self.initial_wealth)
             self.grid.place_agent(ttrader, (x, y))
             self.schedule.add(ttrader)
             self.ttrader_ids.append(id)
@@ -100,7 +114,7 @@ class HeterogeneityInArtificialMarket(Model):
         for i in range(self.initial_mimetic):
             id = self.next_id()
             (x, y) = self.grid.find_empty()
-            mtrader = Trader(id, (x, y), self, self.marketMaker, "MIMETIC", self.initial_wealth)
+            mtrader = Trader(id, (x, y), self, "MIMETIC", self.initial_wealth)
             self.grid.place_agent(mtrader, (x, y))
             self.schedule.add(mtrader)
             self.mtrader_ids.append(id)
@@ -109,7 +123,7 @@ class HeterogeneityInArtificialMarket(Model):
         for i in range(self.initial_noise):
             id = self.next_id()
             (x, y) = self.grid.find_empty()
-            ntrader = Trader(id, (x, y), self, self.marketMaker, "NOISE", self.initial_wealth)
+            ntrader = Trader(id, (x, y), self, "NOISE", self.initial_wealth)
             self.grid.place_agent(ntrader, (x, y))
             self.schedule.add(ntrader)
             self.ntrader_ids.append(id)
@@ -137,11 +151,22 @@ class HeterogeneityInArtificialMarket(Model):
         # plt.show()
         # print(self.G.number_of_edges())
         pass
+    
+    # Get the fundamental value perception variability from an uniform distribution.
+    def get_fund_val_perception_var(self):
+        return utils.drawFromNormal(fund_val_perception_var_min, fund_val_perception_var_max)
 
+    # Get the maximum threshold for fundamentalist traders from an uniform distribution.
+    def get_fund_max_threshold(self):
+        return utils.drawFromNormal(fund_max_threshold_min, fund_max_threshold_max)
+
+    # Get the minimum threshold for fundamentalist traders from an uniform distribution.
+    def get_fund_min_threshold(self):
+        return utils.drawFromNormal(fund_min_threshold_min, fund_min_threshold_max)
 
     def step(self):
         self.schedule.step()
-        self.marketMaker.update()
+        # self.marketMaker.update()
         pass
 
     def run_model(self, year_lapse=5):
