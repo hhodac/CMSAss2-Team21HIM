@@ -1,30 +1,66 @@
-class MarketMaker():
-    """Market maker sets the price at which agents can trade the asset
-    based on demand for the asset during the previous time step"""
+from utils import drawFromUniform, drawFromNormal
 
-    def __init__(self, initial_price=100):
-        # Market price
-        self.initial_price = initial_price
-        self.current_price = initial_price
-        pass
+class MarketMaker():
+    """
+    Market maker sets the price at which agents can trade the asset
+    based on demand for the asset during the previous time step
+    """
+
+    def __init__(self, initial_fundamental_value, sigma_fundamental_value, volatility):
+        self.fundamental_value = initial_fundamental_value
+        self.sigma_fundamental_value = sigma_fundamental_value
+        self.volatility = volatility
+        
+        self.current_price = self.fundamental_value
+        self.total_orders = 0
+        
+        self.sigma_price_formation = 0.4
+        self.mu_price_formation = 0
 
     def getCurrentPrice(self):
+        """
+        Returns the current price of the asset.
+        """
         return self.current_price
 
-    def getFundamentalPrice(self):
-        return
+    def getFundamentalValue(self):
+        """
+        Returns the current fundamental value.
+        """
+        return self.fundamental_value
 
     def updatePrice(self):
-        pass
+        """
+        Updates the current price based on the change in fundamental value 
+        and the net demand/supply of the previous time step.
+        """
+        self._updateFundamentalValue()
+        self._updateCurrentPrice()
+        self.total_orders = 0
+        return
+
+    def submitOrder(self, order):
+        """
+        Receives an order from an agent and adds it to the total daily orders.
+        """
+        self.total_orders += order
+        return
+
+    def _updateFundamentalValue(self):
+        """
+        Updates the fundamental value of the asset via a random walk process.
+        """
+        try:
+            self.fundamental_value += drawFromNormal(mu=self.fundamental_value, sigma=self.sigma_fundamental_value)    
+            if self.fundamental_value < 0:
+                raise Exception("Fundamental value became negative")            
+        except Exception as e:
+            print(e)
+        return
 
     def _updateCurrentPrice(self):
-        pass
-
-    def _updateFundamentalPrice(self):
-        pass
-
-    def submitOrder(self):
-        pass
-
-    def _priceFormation(self):
-        pass
+        """
+        Updates the current price based on a combination of previous price, total orders, market liquidity, and noise term. 
+        """
+        self.current_price = self.current_price + self.total_orders/self.volatility + drawFromNormal(mu=self.mu_price_formation, sigma=self.sigma_price_formation)
+        return
