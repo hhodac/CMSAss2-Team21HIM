@@ -33,15 +33,6 @@ def getMarketFundamentalPrice(model):
 class HeterogeneityInArtificialMarket(Model):
     """A model for simulating effect of heterogenious type of traders on an artificial market model"""
 
-    height = 20
-    width = 20
-
-    initial_fundamentalist = 25
-    initial_technical = 25
-    initial_mimetic = 25
-    initial_noise = 25
-    initial_wealth = 100
-
     description = (
         "A model for simulating effect of heterogeneous type of traders on an artificial market model."
     )
@@ -57,6 +48,9 @@ class HeterogeneityInArtificialMarket(Model):
             initial_mimetic=25,
             initial_noise=25,
             initial_wealth=100,
+            initial_fundamental_value=100, 
+            sigma_fundamental_value=0.25, 
+            volatility=400,
             **kwargs
     ):
         super().__init__()
@@ -67,6 +61,9 @@ class HeterogeneityInArtificialMarket(Model):
         self.initial_mimetic = initial_mimetic
         self.initial_noise = initial_noise
         self.initial_wealth = initial_wealth
+        self.initial_fundamental_value = initial_fundamental_value
+        self.sigma_fundamental_value = sigma_fundamental_value
+        self.volatility = volatility
         self.verbose = True
 
         # ID list of agent type
@@ -82,7 +79,7 @@ class HeterogeneityInArtificialMarket(Model):
         self.grid = SingleGrid(self.width, self.height, torus=True)
 
         # Initialize market maker
-        self.marketMaker = MarketMaker()
+        self.marketMaker = MarketMaker(self.initial_fundamental_value, self.sigma_fundamental_value, self.volatility)
 
         # Initialize traders & networks
         self.generate_traders()
@@ -208,7 +205,7 @@ class HeterogeneityInArtificialMarket(Model):
                 [
                     self.schedule.time,
                     self.marketMaker.getCurrentPrice(),
-                    self.marketMaker.getFundamentalPrice()
+                    self.marketMaker.getFundamentalValue()
                 ]
             )
         pass
