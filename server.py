@@ -3,8 +3,6 @@ from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.modules import ChartModule
 from mesa.visualization.modules import CanvasGrid
 
-from trader import Trader
-from market import MarketMaker
 from model import HeterogeneityInArtificialMarket
 
 grid_rows = 50
@@ -24,17 +22,13 @@ def trader_portrayal(agent):
     if agent is None:
         return
 
-    portrayal = {}
-
-    if type(agent) is Trader:
-        portrayal = {"Shape": "circle",
-                     "r": 1,
-                     "Filled": "true",
-                     "x": agent.getPos()[0],
-                     "y": agent.getPos()[1],
-                     "Color": TRADER_COLOR[agent.getType()],
-                     "Layer": 0}
-
+    portrayal = {"Shape": "circle",
+                 "r": 1,
+                 "Filled": "true",
+                 "x": agent.getPos()[0],
+                 "y": agent.getPos()[1],
+                 "Color": TRADER_COLOR[agent.getType()],
+                 "Layer": 0}
 
     return portrayal
 

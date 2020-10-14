@@ -8,7 +8,6 @@ from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 from mesa.space import SingleGrid
 
-from trader import Trader
 from fundamentalist import Fundamentalist
 from technical import Technical
 from mimetic import Mimetic
@@ -119,7 +118,7 @@ class HeterogeneityInArtificialMarket(Model):
         for i in range(self.initial_technical):
             id = self.next_id()
             (x, y) = self.grid.find_empty()
-            ttrader = Trader(id, (x, y), self, "TECHNICAL", self.initial_wealth)
+            ttrader = Technical(id, (x, y), self, "TECHNICAL", self.initial_wealth)
             self.grid.place_agent(ttrader, (x, y))
             self.schedule.add(ttrader)
             self.ttrader_ids.append(id)
@@ -128,7 +127,7 @@ class HeterogeneityInArtificialMarket(Model):
         for i in range(self.initial_mimetic):
             id = self.next_id()
             (x, y) = self.grid.find_empty()
-            mtrader = Trader(id, (x, y), self, "MIMETIC", self.initial_wealth)
+            mtrader = Mimetic(id, (x, y), self, "MIMETIC", self.initial_wealth)
             self.grid.place_agent(mtrader, (x, y))
             self.schedule.add(mtrader)
             self.mtrader_ids.append(id)
@@ -137,7 +136,7 @@ class HeterogeneityInArtificialMarket(Model):
         for i in range(self.initial_noise):
             id = self.next_id()
             (x, y) = self.grid.find_empty()
-            ntrader = Trader(id, (x, y), self, "NOISE", self.initial_wealth)
+            ntrader = Noise(id, (x, y), self, "NOISE", self.initial_wealth)
             self.grid.place_agent(ntrader, (x, y))
             self.schedule.add(ntrader)
             self.ntrader_ids.append(id)
