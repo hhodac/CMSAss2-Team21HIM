@@ -28,7 +28,7 @@ def getMarketCurrentPrice(model):
     return model.marketMaker.getCurrentPrice()
 
 def getMarketFundamentalPrice(model):
-    return model.marketMaker.getFundamentalPrice()
+    return model.marketMaker.getFundamentalValue()
 
 class HeterogeneityInArtificialMarket(Model):
     """A model for simulating effect of heterogenious type of traders on an artificial market model"""
@@ -63,7 +63,7 @@ class HeterogeneityInArtificialMarket(Model):
         self.initial_wealth = initial_wealth
         self.initial_fundamental_value = initial_fundamental_value
         self.sigma_fundamental_value = sigma_fundamental_value
-        self.volatility = volatility
+        self.volatility = sum([initial_fundamentalist,initial_technical,initial_mimetic,initial_noise])
         self.verbose = True
 
         # ID list of agent type
@@ -197,8 +197,9 @@ class HeterogeneityInArtificialMarket(Model):
         return utils.drawFromNormal(fund_min_threshold_min, fund_min_threshold_max)
 
     def step(self):
-        self.schedule.step()
         self.marketMaker.updatePrice()
+        self.schedule.step()
+
         self.datacollector.collect(self)
         if self.verbose:
             print(

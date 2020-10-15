@@ -29,22 +29,28 @@ class Fundamentalist(Trader):
 
         # Calculating the fundamental value perception.
         self.fund_val = self.marketMaker.getFundamentalValue()
-        self.fund_val_perception[t] = self.fund_val + self.fund_val_perception_var
+        self.fund_val_perception.append(self.fund_val + self.fund_val_perception_var)
 
         # Check if the position has been liquidated.
         if self.position[t-1] == 0:
             if abs(self.fund_val_perception[t] - self.price) > self.max_threshold:
-                self.position[t] = self.fund_val_perception[t] - self.price
+                self.position.append(self.fund_val_perception[t] - self.price)
             else:
                 self.position[t] = 0
         else:
             if abs(self.fund_val_perception[t] - self.price) < self.min_threshold:
                 self.position[t] = 0
             else:
-                self.position[t] = self.fund_val_perception[t] - self.price
+                self.position.append(self.fund_val_perception[t] - self.price)
 
-        self.order[t] = self.position[t] - self.position[t-1]
+        self.order.append(self.position[t] - self.position[t-1])
 
-        # self.marketMaker.submitorder(self.order[t])
+        self.marketMaker.submitOrder(self.order[t])
 
         # How is the sell/buy process?
+
+    def step(self):
+        """Describe sequence of trader's behavior in the model to run their step function
+        in correspondence to model.HeterogeneityInArtificialMarket.schedule.step()"""
+        self.trade(self.model.schedule.time)
+        pass
