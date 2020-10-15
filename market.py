@@ -11,10 +11,12 @@ class MarketMaker():
         self.sigma_fundamental_value = sigma_fundamental_value
         self.volatility = volatility
         
-        self.current_price = self.fundamental_value
+        # self.current_price = self.fundamental_value
+        self.current_price = self.fundamental_value * 0.90
         self.total_orders = 0
         
         self.sigma_price_formation = 0.4
+        self.mu_fundamental_value = 0
         self.mu_price_formation = 0
 
     def getCurrentPrice(self):
@@ -51,7 +53,7 @@ class MarketMaker():
         Updates the fundamental value of the asset via a random walk process.
         """
         try:
-            self.fundamental_value += drawFromNormal(mu=self.fundamental_value, sigma=self.sigma_fundamental_value)    
+            self.fundamental_value = self.fundamental_value # self.fundamental_value + drawFromNormal(mu=self.mu_fundamental_value, sigma=self.sigma_fundamental_value)    
             if self.fundamental_value < 0:
                 raise Exception("Fundamental value became negative")            
         except Exception as e:
@@ -62,5 +64,10 @@ class MarketMaker():
         """
         Updates the current price based on a combination of previous price, total orders, market liquidity, and noise term. 
         """
-        self.current_price = self.current_price + self.total_orders/self.volatility + drawFromNormal(mu=self.mu_price_formation, sigma=self.sigma_price_formation)
+        try:
+            self.current_price = self.current_price + self.total_orders/self.volatility # + drawFromNormal(mu=self.mu_price_formation, sigma=self.sigma_price_formation)    
+            if self.current_price < 0:
+                raise Exception("Current price became negative")            
+        except Exception as e:
+            print(e)
         return

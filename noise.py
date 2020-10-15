@@ -15,4 +15,6 @@ class Noise(Trader):
 
     def trade(self, t):
         """Describe trading behavior of fundamentalist trader"""
-        return None
+        self.marketMaker.submitOrder(utils.drawFromNormal(0,1)*1000)
+
+        

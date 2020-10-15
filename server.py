@@ -36,19 +36,19 @@ def trader_portrayal(agent):
 # dictionary of user settable parameters - these map to the model __init__ parameters
 model_params = {
     "initial_fundamentalist": UserSettableParameter(
-        "slider", "fundamentalist_traders", 25, 1, 100, description="Number of Fundamentalist Traders"
+        "slider", "fundamentalist_traders", 25, 0, 1000, description="Number of Fundamentalist Traders"
     ),
     "initial_technical": UserSettableParameter(
-        "slider", "technical_traders", 25, 1, 100, description="Number of Technical Traders"
+        "slider", "technical_traders", 25, 0, 1000, description="Number of Technical Traders"
     ),
     "initial_mimetic": UserSettableParameter(
-        "slider", "mimetic_traders", 25, 1, 100, description="Number of Mimetic Traders"
+        "slider", "mimetic_traders", 25, 0, 1000, description="Number of Mimetic Traders"
     ),
     "initial_noise": UserSettableParameter(
-        "slider", "noise_traders", 25, 1, 100, description="Number of Noise Traders"
+        "slider", "noise_traders", 25, 0, 1000, description="Number of Noise Traders"
     ),
     "initial_wealth": UserSettableParameter(
-        "slider", "wealth", 100, 100, 1000, description="Initial wealth of each Trader"
+        "slider", "wealth", 100, 100, 10000, description="Initial wealth of each Trader"
     ),
 }
 

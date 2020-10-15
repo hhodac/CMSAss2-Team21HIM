@@ -13,13 +13,13 @@ class Fundamentalist(Trader):
         super().__init__(unique_id, grid_pos, model, type, wealth)
         
         # Fundamental value perception variability (from uniform dist)
-        self.fund_val_perception_var = model.get_fund_val_perception_var()
+        self.fund_val_perception_var = 0 # model.get_fund_val_perception_var()
         # Fundamental value perception
         self.fund_val_perception = []
         # Maximum allowed difference between fundamental value perception and current price (from uniform dist)
-        self.max_threshold = model.get_fund_max_threshold()
+        self.max_threshold = 5.0 # model.get_fund_max_threshold()
         # Minimum allowed difference between fundamental value perception and current price (from uniform dist)
-        self.min_threshold = model.get_fund_min_threshold()                 
+        self.min_threshold = -5.0 # model.get_fund_min_threshold()                 
 
     def trade(self, t):
         """Describe trading behavior of fundamentalist trader"""
@@ -36,21 +36,17 @@ class Fundamentalist(Trader):
             if abs(self.fund_val_perception[t] - self.price) > self.max_threshold:
                 self.position.append(self.fund_val_perception[t] - self.price)
             else:
-                self.position[t] = 0
+                self.position.append(0)
         else:
             if abs(self.fund_val_perception[t] - self.price) < self.min_threshold:
-                self.position[t] = 0
+                self.position.append(0)
             else:
                 self.position.append(self.fund_val_perception[t] - self.price)
 
         self.order.append(self.position[t] - self.position[t-1])
 
+        print(self.order[t])
+
         self.marketMaker.submitOrder(self.order[t])
 
         # How is the sell/buy process?
-
-    def step(self):
-        """Describe sequence of trader's behavior in the model to run their step function
-        in correspondence to model.HeterogeneityInArtificialMarket.schedule.step()"""
-        self.trade(self.model.schedule.time)
-        pass

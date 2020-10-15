@@ -31,4 +31,5 @@ class Trader(Agent):
     def step(self):
         """Describe sequence of trader's behavior in the model to run their step function
         in correspondence to model.HeterogeneityInArtificialMarket.schedule.step()"""
+        self.trade(self.model.schedule.time)
         pass
