@@ -17,12 +17,15 @@ from market import MarketMaker
 import utils
 
 # Global variables
+# For Fundamentalist Traders
 fund_val_perception_var_min = -8.0
 fund_val_perception_var_max = 8.0
 fund_max_threshold_min = 2.0
 fund_max_threshold_max = 5.0
 fund_min_threshold_min = -0.5
 fund_min_threshold_max = 1
+# For Technical Traders
+TECH_NORM_FACTOR = 25
 
 def getMarketCurrentPrice(model):
     return model.marketMaker.getCurrentPrice()

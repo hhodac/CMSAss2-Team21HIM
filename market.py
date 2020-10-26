@@ -13,12 +13,20 @@ class MarketMaker():
         
         # self.current_price = self.fundamental_value
         self.current_price = self.fundamental_value * 0.90
+        self.price = [self.current_price] # Price History
         self.total_orders = 0
         
         self.sigma_price_formation = 0.4
         self.mu_fundamental_value = 0
         self.mu_price_formation = 0
 
+    def getPriceHistory(self, low_limit, high_limit):
+        """
+        Returns the price history of the asset in a given range.
+        """
+        return self.price[low_limit:high_limit+1]
+
+    
     def getCurrentPrice(self):
         """
         Returns the current price of the asset.
@@ -66,6 +74,7 @@ class MarketMaker():
         """
         try:
             self.current_price = self.current_price + self.total_orders/self.volatility # + drawFromNormal(mu=self.mu_price_formation, sigma=self.sigma_price_formation)    
+            self.price.append(self.current_price)
             if self.current_price < 0:
                 raise Exception("Current price became negative")            
         except Exception as e:
