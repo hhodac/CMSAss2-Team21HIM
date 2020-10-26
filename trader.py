@@ -25,6 +25,12 @@ class Trader(Agent):
     def getWealth(self):
         return self.wealth
 
+    def getPosition(self, t):
+        return self.position[t]
+
+    def getOrder(self, t):
+        return self.order[t]
+
     def trade(self, t):
         return None
 
