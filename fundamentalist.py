@@ -43,10 +43,11 @@ class Fundamentalist(Trader):
             else:
                 self.position.append(self.fund_val_perception[t] - self.price)
 
+        # Order > 0 : buy
+        # Order = 0 : hold
+        # Order < 0 : sell
         self.order.append(self.position[t] - self.position[t-1])
 
         print(self.order[t])
 
         self.marketMaker.submitOrder(self.order[t])
-
-        # How is the sell/buy process?
