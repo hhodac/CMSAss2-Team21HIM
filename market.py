@@ -27,6 +27,13 @@ class MarketMaker():
         return self.price[low_limit:high_limit+1]
 
 
+    def getPriceHistory(self, low_limit, high_limit):
+        """
+        Returns the price history of the asset in a given range.
+        """
+        return self.price[low_limit:high_limit+1]
+
+
     def getCurrentPrice(self):
         """
         Returns the current price of the asset.
