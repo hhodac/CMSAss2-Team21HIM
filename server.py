@@ -59,6 +59,9 @@ model_params = {
     "initial_wealth": UserSettableParameter(
         "slider", "wealth", 100, 100, 10000, description="Initial wealth of each Trader"
     ),
+    "network_type": UserSettableParameter(
+        "choice", "network_type", value="customize", choices=["customize", "small world"]
+    ),
 }
 
 network = NetworkModule(network_portrayal, 500, 500, library="d3")

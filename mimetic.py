@@ -18,8 +18,8 @@ class Mimetic(Trader):
         if t==0:
             self.order.append(0)
         else:
-            neighbors_nodes = self.model.mimetic_network.get_neighbors(node_id=self.unique_id, include_center=False)
-            chosen_successor = self.random.sample(self.model.mimetic_network.get_cell_list_contents(neighbors_nodes), 1)
+            neighbors_nodes = self.model.network.get_neighbors(node_id=self.unique_id, include_center=False)
+            chosen_successor = self.random.sample(self.model.network.get_cell_list_contents(neighbors_nodes), 1)
             order = chosen_successor[0].getOrder(t-1)
             self.order.append(order)
             self.marketMaker.submitOrder(order)

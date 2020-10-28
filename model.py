@@ -54,6 +54,7 @@ class HeterogeneityInArtificialMarket(Model):
             initial_fundamental_value=100, 
             sigma_fundamental_value=0.25, 
             volatility=400,
+            network_type='customize',
             **kwargs
     ):
         super().__init__()
@@ -68,12 +69,13 @@ class HeterogeneityInArtificialMarket(Model):
         self.sigma_fundamental_value = sigma_fundamental_value
         self.volatility = sum([initial_fundamentalist,initial_technical,initial_mimetic,initial_noise])
         self.verbose = True
+        self.network_type = network_type
 
         # ID list of agent type
-        self.ftrader_ids = list(range(1, initial_fundamentalist+1))
-        self.ttrader_ids = list(range(self.ftrader_ids[-1]+1, self.ftrader_ids[-1]+initial_technical+1))
-        self.mtrader_ids = list(range(self.ttrader_ids[-1]+1, self.ttrader_ids[-1]+initial_mimetic+1))
-        self.ntrader_ids = list(range(self.mtrader_ids[-1]+1, self.mtrader_ids[-1]+initial_noise+1))
+        self.ftrader_ids = list(range(initial_fundamentalist))
+        self.ttrader_ids = list(range(self.ftrader_ids[-1]+1, self.ftrader_ids[-1]+1+initial_technical))
+        self.mtrader_ids = list(range(self.ttrader_ids[-1]+1, self.ttrader_ids[-1]+1+initial_mimetic))
+        self.ntrader_ids = list(range(self.mtrader_ids[-1]+1, self.mtrader_ids[-1]+1+initial_noise))
 
         # Initialize schedule to activate agent randomly
         self.schedule = RandomActivation(self)
@@ -82,8 +84,10 @@ class HeterogeneityInArtificialMarket(Model):
         self.marketMaker = MarketMaker(self.initial_fundamental_value, self.sigma_fundamental_value, self.volatility)
 
         # Initialize traders & networks
-        self.mimetic_network, self.G = self.generate_mimetic_trader_networks()
-        _, _ = self.generate_small_world_networks()
+        if network_type == "customize":
+            self.network, self.G = self.generate_trader_networks()
+        elif network_type == "small world":
+            self.network, self.G = self.generate_small_world_networks()
         self.generate_traders()
 
         # Data collector for chart visualization
@@ -104,99 +108,95 @@ class HeterogeneityInArtificialMarket(Model):
         """
         # Create fundamentalist traders:
         for i in range(self.initial_fundamentalist):
-            id = self.next_id()
+            id = self.next_id()-1
             ftrader = Fundamentalist(id, self, "FUNDAMENTALIST", self.initial_wealth)
-            self.mimetic_network.place_agent(ftrader, id)
+            self.network.place_agent(ftrader, id)
             self.schedule.add(ftrader)
 
         # Create technical traders:
         for i in range(self.initial_technical):
-            id = self.next_id()
+            id = self.next_id()-1
             ttrader = Technical(id, self, "TECHNICAL", self.initial_wealth)
-            self.mimetic_network.place_agent(ttrader, id)
+            self.network.place_agent(ttrader, id)
             self.schedule.add(ttrader)
 
         # Create mimetic traders:
         for i in range(self.initial_mimetic):
-            id = self.next_id()
+            id = self.next_id()-1
             mtrader = Mimetic(id, self, "MIMETIC", self.initial_wealth)
-            self.mimetic_network.place_agent(mtrader, id)
+            self.network.place_agent(mtrader, id)
             self.schedule.add(mtrader)
 
         # Create noise traders:
         for i in range(self.initial_noise):
-            id = self.next_id()
+            id = self.next_id()-1
             ntrader = Noise(id, self, "NOISE", self.initial_wealth)
-            self.mimetic_network.place_agent(ntrader, id)
+            self.network.place_agent(ntrader, id)
             self.schedule.add(ntrader)
 
         pass
 
     def generate_small_world_networks(self):
-        small_world_network = nx.Graph()
-        nodes = list(range(1, sum([self.initial_fundamentalist, self.initial_technical, self.initial_mimetic, self.initial_noise])+1))
-        nodes = random.sample(nodes, len(nodes))
-        # connect each node to k/2 neighbors
-        small_world_network.add_nodes_from(nodes)
-        k = 5
-        p = 0.5
-        for j in range(1, k // 2+1):
-            targets = nodes[j:] + nodes[0:j] # first j nodes are now last in list
-            small_world_network.add_edges_from(zip(nodes,targets))
-        # rewire edges from each node
-        # loop over all nodes in order (label) and neighbors in order (distance)
-        # no self loops or multiple edges allowed
-        for j in range(1, k // 2+1): # outer loop is neighbors
-            targets = nodes[j:] + nodes[0:j] # first j nodes are now last in list
-            # inner loop in node order
-            for u,v in zip(nodes,targets):
-                if random.random() < p:
-                    w = random.choice(nodes)
-                    # Enforce no self-loops or multiple edges
-                    while w == u or small_world_network.has_edge(u, w):
-                        w = random.choice(nodes)
-                        if small_world_network.degree(u) >= len(nodes)-1:
-                            break # skip this rewiring
-                    else:
-                        small_world_network.remove_edge(u,v)
-                        small_world_network.add_edge(u,w)
+        small_world_network = watts_strogatz_graph(self.volatility, k=5, p=0.5)
+        node_mapping = dict(zip(small_world_network.nodes(), sorted(small_world_network.nodes(), key=lambda k: random.random())))
+        small_world_network = nx.relabel_nodes(small_world_network, node_mapping)
         # Debug = visualization
         # pos = nx.circular_layout(small_world_network)
         # plt.figure(figsize = (12, 12))
         # nx.draw_networkx(small_world_network, pos)
         # plt.show()
-        # print("generated small world completed")
         return NetworkGrid(small_world_network), small_world_network
 
-    def generate_mimetic_trader_networks(self):
+    def generate_trader_networks(self):
         """Generate mimetic trader networks.
         Each mimetic trader is assigned in a network with 5 other agents,
         drawn from (fundamentalist & technical) traders.
 
         """
-        total_agents = range(1, sum([self.initial_fundamentalist, self.initial_technical, self.initial_mimetic, self.initial_noise])+1)
+        total_agents = range(sum([self.initial_fundamentalist, self.initial_technical, self.initial_mimetic, self.initial_noise]))
         # nodes = list(total_agents)
-        mimetic_network = nx.Graph()
+        network = nx.Graph()
 
         # Generate graph and networks of mimetic traders
-        mimetic_network.add_nodes_from(total_agents)
+        network.add_nodes_from(total_agents)
 
-        # Create list of agents for mimetic traders to follow
-        l = self.ftrader_ids + self.ttrader_ids + self.ntrader_ids
-
-        # Randomly assign 5 agents in the list to every mimetic trader
+        ### Mimetic trader network
+        # Randomly assign 2 ftraders & 2 ttraders to every mimetic trader
         for mimetic_id in self.mtrader_ids:
-            random_pick_agent_ids = random.sample(l, 5)
+            random_pick_agent_ids = random.sample(self.ftrader_ids,2) + random.sample(self.ttrader_ids,2)
             l_pairs = list([[mimetic_id, agent_id] for agent_id in random_pick_agent_ids])
-            mimetic_network.add_edges_from(l_pairs)
+            network.add_edges_from(l_pairs)
+
+        ### Fundamentalist trader network
+        # Randomly assign 2 ftraders & 2 ttraders to every ftraders
+        for fundamentalist_id in self.ftrader_ids:
+            random_pick_agent_ids = random.sample([id for id in self.ftrader_ids if id != fundamentalist_id],2) \
+                                    + random.sample(self.ttrader_ids,2)
+            l_pairs = list([[fundamentalist_id, agent_id] for agent_id in random_pick_agent_ids])
+            network.add_edges_from(l_pairs)
+
+        ### Technical trader network
+        # Randomly assign 2 ftraders & 2 ttraders to every ttraders
+        for technical_id in self.ttrader_ids:
+            random_pick_agent_ids = random.sample([id for id in self.ttrader_ids if id != technical_id],2) \
+                                    + random.sample(self.ftrader_ids,2)
+            l_pairs = list([[technical_id, agent_id] for agent_id in random_pick_agent_ids])
+            network.add_edges_from(l_pairs)
+
+        ### Noise trader network
+        # Randomly group 5 noise traders together
+        for noise_id in self.ntrader_ids:
+            pick_agent_ids = [id for id in self.ntrader_ids if id != noise_id]
+            random_pick_agent_ids = random.sample(pick_agent_ids,4)
+            l_pairs = list([[noise_id, agent_id] for agent_id in random_pick_agent_ids])
+            network.add_edges_from(l_pairs)
 
         ##### Debug #####
-        # pos = nx.circular_layout(mimetic_network)
-        # nx.draw(mimetic_network, with_labels=True, font_weight='bold', pos=pos)
+        # pos = nx.circular_layout(network)
+        # nx.draw(network, with_labels=True, font_weight='bold', pos=pos)
         # plt.show()
-        # print(mimetic_network.number_of_edges())
-
-        return NetworkGrid(mimetic_network), mimetic_network
+        # print(network.number_of_edges())
+        return NetworkGrid(network), network
 
     # Get the fundamental value perception variability from an uniform distribution.
     def get_fund_val_perception_var(self):
@@ -245,8 +245,8 @@ class HeterogeneityInArtificialMarket(Model):
         for i in range(total_time_lapse):
             self.step()
 
-    def get_mimetic_network(self):
-        return self.mimetic_network
+    def get_network(self):
+        return self.network
 
     def get_small_world(self):
         return self.small_world
