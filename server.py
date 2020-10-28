@@ -1,15 +1,9 @@
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.modules import ChartModule
-from mesa.visualization.modules import CanvasGrid
+from mesa.visualization.modules import NetworkModule
 
 from model import HeterogeneityInArtificialMarket
-
-grid_rows = 50
-grid_cols = 50
-cell_size = 10
-canvas_width = grid_rows * cell_size
-canvas_height = grid_cols * cell_size
 
 TRADER_COLOR = {
     "FUNDAMENTALIST": "#0000FF",    # Blue
@@ -18,17 +12,32 @@ TRADER_COLOR = {
     "NOISE": "#454545",             # Gray
 }
 
-def trader_portrayal(agent):
-    if agent is None:
-        return
+def network_portrayal(G):
+    # The model ensures there is always 1 agent per node
 
-    portrayal = {"Shape": "circle",
-                 "r": 1,
-                 "Filled": "true",
-                 "x": agent.getPos()[0],
-                 "y": agent.getPos()[1],
-                 "Color": TRADER_COLOR[agent.getType()],
-                 "Layer": 0}
+    def node_color(agent):
+        return TRADER_COLOR[agent.getType()]
+
+    portrayal = dict()
+    nodes = list()
+    for (_, agents) in G.nodes.data("agent"):
+        node = dict()
+        node["size"] = 6
+        node["color"] = node_color(agents[0])
+        node["tooltip"]= "id: {}<br>state: {}".format(
+            agents[0].unique_id, agents[0].type)
+        nodes.append(node)
+    portrayal["nodes"] = nodes
+
+    portrayal["edges"] = [
+        {
+            "source": source,
+            "target": target,
+            "color": "#e8e8e8",
+            "width": 3,
+        }
+        for (source, target) in G.edges
+    ]
 
     return portrayal
 
@@ -52,25 +61,19 @@ model_params = {
     ),
 }
 
-canvas_element = CanvasGrid(
-    trader_portrayal, grid_rows, grid_cols, canvas_width, canvas_height
-)
+network = NetworkModule(network_portrayal, 500, 500, library="d3")
 
 chart_element = ChartModule(
     [
-        # {"Label": "Fundamentalist", "Color": TRADER_COLOR["FUNDAMENTALIST"]},
-        # {"Label": "Technical", "Color": TRADER_COLOR["TECHNICAL"]},
-        # {"Label": "Mimetic", "Color": TRADER_COLOR["MIMETIC"]},
-        # {"Label": "Noise", "Color": TRADER_COLOR["NOISE"]},
         {"Label": "Price", "Color": '#FF0000'},
         {"Label": "FundamentalPrice", "Color": '#00FF00'},
-    ]#, data_collector_name='datacollector'
+    ]
 )
 
 # create instance of Mesa ModularServer
 server = ModularServer(
     model_cls=HeterogeneityInArtificialMarket,
-    visualization_elements=[canvas_element, chart_element],
+    visualization_elements=[network, chart_element],
     name="Artificial Market",
     model_params=model_params,
 )
