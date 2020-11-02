@@ -16,15 +16,15 @@ from market import MarketMaker
 
 
 def get_market_price(model):
-    return model.marketMaker.get_current_price()
+    return model.market_maker.get_current_price()
 
 
 def get_market_value(model):
-    return model.marketMaker.get_current_value()
+    return model.market_maker.get_current_value()
 
 
 def get_market_order(model):
-    return model.marketMaker.get_current_order()
+    return model.market_maker.get_current_order()
 
 def get_fundamental_position(model):
     pass
@@ -103,7 +103,7 @@ class HeterogeneityInArtificialMarket(Model):
         self.schedule = RandomActivation(self)
 
         # Initialize market maker
-        self.marketMaker = MarketMaker(initial_value=self.INITIAL_VALUE, mu_value=self.MU_VALUE,
+        self.market_maker = MarketMaker(initial_value=self.INITIAL_VALUE, mu_value=self.MU_VALUE,
                                        sigma_value=self.SIGMA_VALUE, mu_price=self.MU_PRICE,
                                        sigma_price=self.SIGMA_PRICE, liquidity=self.liquidity)
 
@@ -118,7 +118,7 @@ class HeterogeneityInArtificialMarket(Model):
         self.datacollector = DataCollector(
             model_reporters={
                 "Price": get_market_price,
-                "FundamentalPrice": get_market_price,
+                "FundamentalValue": get_market_value,
                 "Order": get_market_order
             }
         )
@@ -228,7 +228,7 @@ class HeterogeneityInArtificialMarket(Model):
         return NetworkGrid(network), network
 
     def step(self):
-        self.marketMaker.update_price()
+        self.market_maker.update_price()
         self.schedule.step()
 
         self.datacollector.collect(self)
@@ -236,9 +236,9 @@ class HeterogeneityInArtificialMarket(Model):
             print(
                 [
                     self.schedule.time,
-                    self.marketMaker.get_current_price(),
-                    self.marketMaker.get_current_value(),
-                    self.marketMaker.get_current_order()
+                    self.market_maker.get_current_price(),
+                    self.market_maker.get_current_value(),
+                    self.market_maker.get_current_order()
                 ]
             )
         pass
@@ -257,7 +257,7 @@ class HeterogeneityInArtificialMarket(Model):
             print("Initial number technical: ", self.initial_technical)
             print("Initial number mimetic: ", self.initial_mimetic)
             print("Initial number noise: ", self.initial_noise)
-            print("Current market price: :", self.marketMaker.get_current_price())
+            print("Current market price: :", self.market_maker.get_current_price())
 
         total_time_lapse = 255 * year_lapse
         for i in range(total_time_lapse):
