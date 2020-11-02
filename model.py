@@ -55,7 +55,7 @@ class HeterogeneityInArtificialMarket(Model):
     EXIT_WINDOW_MIN = 5
     EXIT_WINDOW_MAX = 30
 
-    TECH_NORM_FACTOR = 25.0
+    TECHNICAL_NORM_FACTOR = 25.0
 
     # For Market Maker
     INITIAL_VALUE = 100.0
