@@ -56,9 +56,6 @@ model_params = {
     "initial_noise": UserSettableParameter(
         "slider", "noise_traders", 25, 0, 1000, description="Number of Noise Traders"
     ),
-    "initial_wealth": UserSettableParameter(
-        "slider", "wealth", 100, 100, 10000, description="Initial wealth of each Trader"
-    ),
     "network_type": UserSettableParameter(
         "choice", "network_type", value="customize", choices=["customize", "small world"]
     ),
