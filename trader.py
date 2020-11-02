@@ -6,7 +6,7 @@ class Trader(Agent):
 
     def __init__(self, unique_id, model_reference):
         super().__init__(unique_id, model_reference)
-        self.market_maker = model_reference.marketMaker
+        self.market_maker = model_reference.market_maker
         self.position = []
         self.order = []
 
