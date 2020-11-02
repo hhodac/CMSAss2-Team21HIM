@@ -1,6 +1,7 @@
 from scipy.stats import truncnorm, uniform
 
-def drawFromUniform(lower, upper):
+
+def draw_from_uniform(lower, upper):
     """
     Given a lower, and upper bounds, generates and returns a real number from a uniform distribution.
     """
@@ -13,7 +14,7 @@ def drawFromUniform(lower, upper):
         print(e)
 
 
-def drawFromNormal(mu, sigma, lower=float('-inf'), upper=float('inf')):
+def draw_from_normal(mu, sigma, lower=float('-inf'), upper=float('inf')):
     """
     Given a mean, std, lower, and upper bounds, generates and returns a real number from a normal distribution.
     """
