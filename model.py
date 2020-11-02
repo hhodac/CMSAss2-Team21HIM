@@ -1,7 +1,6 @@
 import networkx as nx
 from networkx.generators.random_graphs import watts_strogatz_graph
 import random
-import matplotlib.pyplot as plt
 
 from mesa import Model
 from mesa.time import RandomActivation
@@ -14,31 +13,57 @@ from mimetic import Mimetic
 from noise import Noise
 
 from market import MarketMaker
-import utils
 
-# Global variables
-# For Fundamentalist Traders
-fund_val_perception_var_min = -8.0
-fund_val_perception_var_max = 8.0
-fund_max_threshold_min = 2.0
-fund_max_threshold_max = 5.0
-fund_min_threshold_min = -0.5
-fund_min_threshold_max = 1
-# For Technical Traders
-TECH_NORM_FACTOR = 25
 
-def getMarketCurrentPrice(model):
-    return model.marketMaker.getCurrentPrice()
+def get_market_price(model):
+    return model.marketMaker.get_current_price()
 
-def getMarketFundamentalPrice(model):
-    return model.marketMaker.getFundamentalValue()
+
+def get_market_value(model):
+    return model.marketMaker.get_current_value()
+
+
+def get_market_order(model):
+    return model.marketMaker.get_current_order()
+
 
 class HeterogeneityInArtificialMarket(Model):
-    """A model for simulating effect of heterogenious type of traders on an artificial market model"""
+    """A model for simulating effect of heterogeneous type of traders on an artificial market model"""
 
     description = (
         "A model for simulating effect of heterogeneous type of traders on an artificial market model."
     )
+
+    # Global variables
+    # For Fundamentalist Traders
+    VALUE_PERCEPTION_MIN = -8.0
+    VALUE_PERCEPTION_MAX = 8.0
+
+    ENTRY_THRESHOLD_MIN = 2.0
+    ENTRY_THRESHOLD_MAX = 5.0
+
+    EXIT_THRESHOLD_MIN = -0.5
+    EXIT_THRESHOLD_MAX = 1.0
+
+    # For Technical Traders
+    SHORT_WINDOW_MIN = 5
+    SHORT_WINDOW_MAX = 15
+
+    LONG_WINDOW_MIN = 35
+    LONG_WINDOW_MAX = 50
+
+    EXIT_WINDOW_MIN = 5
+    EXIT_WINDOW_MAX = 30
+
+    TECH_NORM_FACTOR = 25.0
+
+    # For Market Maker
+    INITIAL_VALUE = 100.0
+    MU_VALUE = 0.0
+    SIGMA_VALUE = 0.25
+
+    MU_PRICE = 0.0
+    SIGMA_PRICE = 0.4
 
     verbose = True  # Print-monitoring
 
@@ -50,24 +75,18 @@ class HeterogeneityInArtificialMarket(Model):
             initial_technical=25,
             initial_mimetic=25,
             initial_noise=25,
-            initial_wealth=100,
-            initial_fundamental_value=100, 
-            sigma_fundamental_value=0.25, 
-            volatility=400,
-            network_type='customize',
-            **kwargs
+            network_type='customize'
     ):
         super().__init__()
         self.height = height
         self.width = width
+
         self.initial_fundamentalist = initial_fundamentalist
         self.initial_technical = initial_technical
         self.initial_mimetic = initial_mimetic
         self.initial_noise = initial_noise
-        self.initial_wealth = initial_wealth
-        self.initial_fundamental_value = initial_fundamental_value
-        self.sigma_fundamental_value = sigma_fundamental_value
-        self.volatility = sum([initial_fundamentalist,initial_technical,initial_mimetic,initial_noise])
+
+        self.liquidity = sum([initial_fundamentalist, initial_technical, initial_mimetic, initial_noise])
         self.verbose = True
         self.network_type = network_type
 
@@ -78,7 +97,9 @@ class HeterogeneityInArtificialMarket(Model):
         self.schedule = RandomActivation(self)
 
         # Initialize market maker
-        self.marketMaker = MarketMaker(self.initial_fundamental_value, self.sigma_fundamental_value, self.volatility)
+        self.marketMaker = MarketMaker(initial_value=self.INITIAL_VALUE, mu_value=self.MU_VALUE,
+                                       sigma_value=self.SIGMA_VALUE, mu_price=self.MU_PRICE,
+                                       sigma_price=self.SIGMA_PRICE, liquidity=self.liquidity)
 
         # Initialize traders & networks
         if network_type == "customize":
@@ -90,8 +111,9 @@ class HeterogeneityInArtificialMarket(Model):
         # Data collector for chart visualization
         self.datacollector = DataCollector(
             model_reporters={
-                "Price": getMarketCurrentPrice,
-                "FundamentalPrice": getMarketFundamentalPrice,
+                "Price": get_market_price,
+                "FundamentalPrice": get_market_price,
+                "Order": get_market_order
             }
         )
         # self.datacollector.collect(self)
@@ -99,7 +121,7 @@ class HeterogeneityInArtificialMarket(Model):
         pass
 
     def generate_traders_id(self):
-        total_agents_id = list(range(self.volatility))
+        total_agents_id = list(range(self.liquidity))
         random.shuffle(total_agents_id)
         ftrader_ids = [total_agents_id.pop() for _ in range(self.initial_fundamentalist)]
         ttrader_ids = [total_agents_id.pop() for _ in range(self.initial_technical)]
@@ -114,32 +136,32 @@ class HeterogeneityInArtificialMarket(Model):
         """
         # Create fundamentalist traders:
         for id in self.ftrader_ids:
-            ftrader = Fundamentalist(id, self, "FUNDAMENTALIST", self.initial_wealth)
+            ftrader = Fundamentalist(id, self)
             self.network.place_agent(ftrader, id)
             self.schedule.add(ftrader)
 
         # Create technical traders:
         for id in self.ttrader_ids:
-            ttrader = Technical(id, self, "TECHNICAL", self.initial_wealth)
+            ttrader = Technical(id, self)
             self.network.place_agent(ttrader, id)
             self.schedule.add(ttrader)
 
         # Create mimetic traders:
         for id in self.mtrader_ids:
-            mtrader = Mimetic(id, self, "MIMETIC", self.initial_wealth)
+            mtrader = Mimetic(id, self)
             self.network.place_agent(mtrader, id)
             self.schedule.add(mtrader)
 
         # Create noise traders:
         for id in self.ntrader_ids:
-            ntrader = Noise(id, self, "NOISE", self.initial_wealth)
+            ntrader = Noise(id, self)
             self.network.place_agent(ntrader, id)
             self.schedule.add(ntrader)
 
         pass
 
     def generate_small_world_networks(self):
-        small_world_network = watts_strogatz_graph(self.volatility, k=5, p=0.5)
+        small_world_network = watts_strogatz_graph(self.liquidity, k=5, p=0.5)
 
         # Debug = visualization
         # pos = nx.circular_layout(small_world_network)
@@ -161,26 +183,26 @@ class HeterogeneityInArtificialMarket(Model):
         # Generate graph and networks of mimetic traders
         network.add_nodes_from(total_agents)
 
-        ### Mimetic trader network
+        # Mimetic trader network
         # Randomly assign 2 ftraders & 2 ttraders to every mimetic trader
         for mimetic_id in self.mtrader_ids:
-            random_pick_agent_ids = random.sample(self.ftrader_ids,2) + random.sample(self.ttrader_ids,2)
+            random_pick_agent_ids = random.sample(self.ftrader_ids,2) + random.sample(self.ttrader_ids, 2)
             l_pairs = list([[mimetic_id, agent_id] for agent_id in random_pick_agent_ids])
             network.add_edges_from(l_pairs)
 
-        ### Fundamentalist trader network
+        # Fundamentalist trader network
         # Randomly assign 2 ftraders & 2 ttraders to every ftraders
         for fundamentalist_id in self.ftrader_ids:
-            random_pick_agent_ids = random.sample([id for id in self.ftrader_ids if id != fundamentalist_id],2) \
-                                    + random.sample(self.ttrader_ids,2)
+            random_pick_agent_ids = random.sample([id for id in self.ftrader_ids if id != fundamentalist_id], 2) \
+                                    + random.sample(self.ttrader_ids, 2)
             l_pairs = list([[fundamentalist_id, agent_id] for agent_id in random_pick_agent_ids])
             network.add_edges_from(l_pairs)
 
-        ### Technical trader network
+        # Technical trader network
         # Randomly assign 2 ftraders & 2 ttraders to every ttraders
         for technical_id in self.ttrader_ids:
-            random_pick_agent_ids = random.sample([id for id in self.ttrader_ids if id != technical_id],2) \
-                                    + random.sample(self.ftrader_ids,2)
+            random_pick_agent_ids = random.sample([id for id in self.ttrader_ids if id != technical_id], 2) \
+                                    + random.sample(self.ftrader_ids, 2)
             l_pairs = list([[technical_id, agent_id] for agent_id in random_pick_agent_ids])
             network.add_edges_from(l_pairs)
 
@@ -188,7 +210,7 @@ class HeterogeneityInArtificialMarket(Model):
         # Randomly group 5 noise traders together
         for noise_id in self.ntrader_ids:
             pick_agent_ids = [id for id in self.ntrader_ids if id != noise_id]
-            random_pick_agent_ids = random.sample(pick_agent_ids,4)
+            random_pick_agent_ids = random.sample(pick_agent_ids, 4)
             l_pairs = list([[noise_id, agent_id] for agent_id in random_pick_agent_ids])
             network.add_edges_from(l_pairs)
 
@@ -199,20 +221,8 @@ class HeterogeneityInArtificialMarket(Model):
         # print(network.number_of_edges())
         return NetworkGrid(network), network
 
-    # Get the fundamental value perception variability from an uniform distribution.
-    def get_fund_val_perception_var(self):
-        return utils.drawFromNormal(fund_val_perception_var_min, fund_val_perception_var_max)
-
-    # Get the maximum threshold for fundamentalist traders from an uniform distribution.
-    def get_fund_max_threshold(self):
-        return utils.drawFromNormal(fund_max_threshold_min, fund_max_threshold_max)
-
-    # Get the minimum threshold for fundamentalist traders from an uniform distribution.
-    def get_fund_min_threshold(self):
-        return utils.drawFromNormal(fund_min_threshold_min, fund_min_threshold_max)
-
     def step(self):
-        self.marketMaker.updatePrice()
+        self.marketMaker.update_price()
         self.schedule.step()
 
         self.datacollector.collect(self)
@@ -220,8 +230,9 @@ class HeterogeneityInArtificialMarket(Model):
             print(
                 [
                     self.schedule.time,
-                    self.marketMaker.getCurrentPrice(),
-                    self.marketMaker.getFundamentalValue()
+                    self.marketMaker.get_current_price(),
+                    self.marketMaker.get_current_value(),
+                    self.marketMaker.get_current_order()
                 ]
             )
         pass
@@ -240,7 +251,7 @@ class HeterogeneityInArtificialMarket(Model):
             print("Initial number technical: ", self.initial_technical)
             print("Initial number mimetic: ", self.initial_mimetic)
             print("Initial number noise: ", self.initial_noise)
-            print("Current market price: :", self.marketMaker.getCurrentPrice())
+            print("Current market price: :", self.marketMaker.get_current_price())
 
         total_time_lapse = 255 * year_lapse
         for i in range(total_time_lapse):

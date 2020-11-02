@@ -1,56 +1,47 @@
 from trader import Trader
-import utils
-import model
+from utils import draw_from_uniform
+
 
 class Fundamentalist(Trader):
-    """Represents heterogenious type of traders in the artificial financial market model"""
+    """Represents one of the heterogeneous types of traders in the artificial financial market model"""
 
-    def __init__(self, unique_id, model, type, wealth, **kwargs):
+    def __init__(self, unique_id, model):
         """Generate a trader with specific type
-
-        :param type: FUNDAMENTALIST, TECHNICAL, MIMETIC, NOISE
         """
-        super().__init__(unique_id, model, type, wealth)
-        
-        # Fundamental value perception variability (from uniform dist)
-        self.fund_val_perception_var = 0 # model.get_fund_val_perception_var()
-        # Fundamental value perception
-        self.fund_val_perception = []
-        # Maximum allowed difference between fundamental value perception and current price (from uniform dist)
-        self.max_threshold = 5.0 # model.get_fund_max_threshold()
-        # Minimum allowed difference between fundamental value perception and current price (from uniform dist)
-        self.min_threshold = -0.5 # model.get_fund_min_threshold()
+        super().__init__(unique_id, model)
+
+        self.perception_offset = draw_from_uniform(model.VALUE_PERCEPTION_MIN, model.VALUE_PERCEPTION_MAX)
+        self.entry_threshold = draw_from_uniform(model.ENTRY_THRESHOLD_MIN, model.ENTRY_THRESHOLD_MAX)
+        self.exit_threshold = draw_from_uniform(model.EXIT_THRESHOLD_MIN, model.EXIT_THRESHOLD_MAX)
+
+        self.current_price = 0.0
+        self.value_perception = 0.0
 
     def trade(self, t):
-        """Describe trading behavior of fundamentalist trader"""
-
+        """Describes trading behavior of fundamentalist trader"""
         # Get the current price
-        self.price = self.marketMaker.getCurrentPrice()
-
+        self.current_price = self.marketMaker.get_current_price()
         # Calculating the fundamental value perception.
-        self.fund_val = self.marketMaker.getFundamentalValue()
-        self.fund_val_perception.append(self.fund_val + self.fund_val_perception_var)
+        self.value_perception = self.marketMaker.get_current_value() + self.perception_offset
 
         # Check if the position has been liquidated.
         if self.position[t-1] == 0:
             # Open a position (change its value to positive or negative).
-            if abs(self.fund_val_perception[t] - self.price) > self.max_threshold:
-                self.position.append(self.fund_val_perception[t] - self.price)
+            if abs(self.value_perception - self.current_price) > self.entry_threshold:
+                self.position.append(self.value_perception - self.current_price)
             else:
-                self.position.append(0)     # maintain the position in zero.
+                self.position.append(0)     # maintain the position at zero.
         else:
             # Liquidation condition.
-            if abs(self.fund_val_perception[t] - self.price) < self.min_threshold:
+            if abs(self.value_perception - self.current_price) < self.exit_threshold:
                 self.position.append(0)     # liquidate the position.
             else:
                 # If the liquidation condition is not satisfied update the position.
-                self.position.append(self.fund_val_perception[t] - self.price)
+                self.position.append(self.value_perception - self.current_price)
 
         # Order > 0 : buy
         # Order = 0 : hold
         # Order < 0 : sell
         self.order.append(self.position[t] - self.position[t-1])
-
-        # print(self.order[t])
 
         self.marketMaker.submitOrder(self.order[t])

@@ -1,6 +1,6 @@
 import inspect
 
-from utils import draw_from_uniform, draw_from_normal
+from utils import draw_from_normal
 
 
 class MarketMaker:

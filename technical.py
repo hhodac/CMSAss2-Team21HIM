@@ -1,34 +1,20 @@
 from trader import Trader
-import utils
 import model
 import numpy as np
+from utils import draw_from_uniform
+
 
 class Technical(Trader):
-    """Represents heterogenious type of traders in the artificial financial market model"""
+    """Represents heterogeneous type of traders in the artificial financial market model"""
 
     def __init__(self, unique_id, model, type, wealth, **kwargs):
         """Generate a trader with specific type
-
-        :param type: FUNDAMENTALIST, TECHNICAL, MIMETIC, NOISE
         """
-        super().__init__(unique_id, model, type, wealth)
+        super().__init__(unique_id, model)
 
-        # (from uniform distributions)
-        self.short_window = 10
-        self.long_window = 35
-        self.exit_channel_window = 5
-
-        # Short term moving average history.
-        self.short_MA = []
-        # Long term moving average history.
-        self.long_MA = []
-
-        # Difference in slope between the two moving averages.
-        self.slope_diff = []
-        # (from uniform distributions)
-        self.short_window = 10
-        self.long_window = 35
-        self.exit_channel_window = 5
+        self.short_window = draw_from_uniform(model.SHORT_WINDOW_MIN, model.SHORT_WINDOW_MAX)
+        self.long_window = draw_from_uniform(model.LONG_WINDOW_MIN, model.LONG_WINDOW_MAX)
+        self.exit_window = draw_from_uniform(model.EXIT_WINDOW_MIN, model.EXIT_WINDOW_MAX)
 
         # Short term moving average history.
         self.short_MA = []
@@ -37,15 +23,17 @@ class Technical(Trader):
 
         # Difference in slope between the two moving averages.
         self.slope_diff = []
+
+        self.current_price = 0.0
 
     def trade(self, t):
         """Describe trading behavior of technical trader"""
 
         # Get the current price.
-        self.price = self.marketMaker.getCurrentPrice()
+        self.current_price = self.marketMaker.get_current_price()
 
         # Get moving averages.
-        self.short_MA.append(self.getMovingAverage(t, self.short_window))
+        self.short_MA.append(self.compute(t, self.short_window))
         self.long_MA.append(self.getMovingAverage(t, self.long_window))
 
         # Get moving averages slope difference.
@@ -88,28 +76,22 @@ class Technical(Trader):
 
         self.marketMaker.submitOrder(self.order[t])
 
-
-    def getPrices(self, t, window):
+    def get_price_window(self, t, window):
         """
-        Returns list of past prices between the given window.
+        Returns list of past prices for the given window.
         """
-        low_limit = t - window + 1      #summing one time step because it starts from t=0
-        if low_limit < 0:
-            low_limit = 0
+        if t >= (window - 1):
+            return self.marketMaker.get_prices(low_limit=(t - window + 1), high_limit=None)
+        else:
+            return 0.0
 
-        # Getting the prices from low_limit to high_limit inclusively
-        return self.marketMaker.getPriceHistory(low_limit=low_limit, high_limit=t)
-
-
-    def getMovingAverage(self, t, window):
+    def compute_moving_average(self, t, window):
         """
-        Returns the moving average of past prices between the given window.
+        Returns the moving average of past prices in the given window.
         """
-        # Getting the prices
-        prices = self.getPrices(t, window)
+        price_window = self.get_price_window(t, window)
 
-        return sum(prices)/window
-
+        return sum(price_window) / window
 
     def getSlopeDifference(self, t):
         """
