@@ -191,7 +191,8 @@ class MarketMaker:
             total_order = self.net_fundamental_order + self.net_technical_order \
                           + self.net_mimetic_order + self.net_noise_order
 
-            if self.net_order != total_order:
+            if abs(self.net_order - total_order) > 1.0e-6:
+                print("Net order = {} | Total order = {}".format(self.net_order, total_order))
                 raise Exception("Orders don't sum up correctly in _update_orders")
 
             self.order_history.append(self.net_order)

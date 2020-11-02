@@ -13,4 +13,4 @@ class Noise(Trader):
         """Describe trading behavior of fundamentalist trader"""
         order = draw_from_normal(mu=0.0, sigma=1.0)
         self.order.append(order)
-        self.market_maker.submitOrder(order)
+        self.market_maker.submit_order(order)

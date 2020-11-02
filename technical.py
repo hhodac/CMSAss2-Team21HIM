@@ -11,9 +11,9 @@ class Technical(Trader):
         """
         super().__init__(unique_id, model_reference)
 
-        self.short_window = draw_from_uniform(model_reference.SHORT_WINDOW_MIN, model_reference.SHORT_WINDOW_MAX)
-        self.long_window = draw_from_uniform(model_reference.LONG_WINDOW_MIN, model_reference.LONG_WINDOW_MAX)
-        self.exit_window = draw_from_uniform(model_reference.EXIT_WINDOW_MIN, model_reference.EXIT_WINDOW_MAX)
+        self.short_window = int(draw_from_uniform(model_reference.SHORT_WINDOW_MIN, model_reference.SHORT_WINDOW_MAX))
+        self.long_window = int(draw_from_uniform(model_reference.LONG_WINDOW_MIN, model_reference.LONG_WINDOW_MAX))
+        self.exit_window = int(draw_from_uniform(model_reference.EXIT_WINDOW_MIN, model_reference.EXIT_WINDOW_MAX))
 
         self.normalization_constant = model_reference.TECHNICAL_NORM_FACTOR
 
@@ -73,7 +73,7 @@ class Technical(Trader):
         # Order > 0 : buy, Order = 0 : hold, Order < 0 : sell
         self.order.append(self.position[t] - self.position[t-1])
 
-        self.market_maker.submitOrder(self.order[t])
+        self.market_maker.submit_order(self.order[t])
 
     def _compute_moving_average(self, t, window):
         """
@@ -88,7 +88,7 @@ class Technical(Trader):
         if t >= (window - 1):
             return self.market_maker.get_prices(low_limit=(t - window + 1), high_limit=None)
         else:
-            return 0.0
+            return []
 
     def _compute_slope_difference(self, t):
         """

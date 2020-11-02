@@ -3,6 +3,14 @@ from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.modules import ChartModule
 from mesa.visualization.modules import NetworkModule
 
+
+from fundamentalist import Fundamentalist
+from technical import Technical
+from mimetic import Mimetic
+from noise import Noise
+
+
+
 from model import HeterogeneityInArtificialMarket
 
 TRADER_COLOR = {
@@ -16,7 +24,14 @@ def network_portrayal(G):
     # The model ensures there is always 1 agent per node
 
     def node_color(agent):
-        return TRADER_COLOR[agent.getType()]
+        if isinstance(agent, Fundamentalist):
+            return TRADER_COLOR["FUNDAMENTALIST"]
+        elif isinstance(agent, Technical):
+            return TRADER_COLOR["TECHNICAL"]
+        elif isinstance(agent, Mimetic):
+            return TRADER_COLOR["MIMETIC"]
+        elif isinstance(agent, Noise):
+            return TRADER_COLOR["NOISE"]
 
     portrayal = dict()
     nodes = list()
@@ -24,8 +39,8 @@ def network_portrayal(G):
         node = dict()
         node["size"] = 6
         node["color"] = node_color(agents[0])
-        node["tooltip"]= "id: {}<br>state: {}".format(
-            agents[0].unique_id, agents[0].type)
+        # node["tooltip"]= "id: {}<br>state: {}".format(
+        #     agents[0].unique_id, agents[0].type)
         nodes.append(node)
     portrayal["nodes"] = nodes
 

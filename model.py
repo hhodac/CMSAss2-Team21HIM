@@ -26,6 +26,12 @@ def get_market_value(model):
 def get_market_order(model):
     return model.marketMaker.get_current_order()
 
+def get_fundamental_position(model):
+    pass
+
+def get_technical_position(model):
+
+    pass
 
 class HeterogeneityInArtificialMarket(Model):
     """A model for simulating effect of heterogeneous type of traders on an artificial market model"""

@@ -45,4 +45,4 @@ class Fundamentalist(Trader):
         # Order > 0 : buy, Order = 0 : hold, Order < 0 : sell
         self.order.append(self.position[t] - self.position[t-1])
 
-        self.market_maker.submitOrder(self.order[t])
+        self.market_maker.submit_order(self.order[t])
