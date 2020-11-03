@@ -81,7 +81,7 @@ network = NetworkModule(network_portrayal, 500, 500, library="d3")
 chart_element = ChartModule(
     [
         {"Label": "Price", "Color": '#FF0000'},
-        {"Label": "FundamentalPrice", "Color": '#00FF00'},
+        {"Label": "FundamentalValue", "Color": '#00FF00'},
     ]
 )
 
