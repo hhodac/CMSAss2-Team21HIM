@@ -113,7 +113,7 @@ class HeterogeneityInArtificialMarket(Model):
         self.simulation_period = simulation_period
 
         self.liquidity = sum([initial_fundamentalist, initial_technical, initial_mimetic, initial_noise])
-        self.verbose = True
+        self.verbose = False
         self.network_type = network_type
 
         # ID list of agent type

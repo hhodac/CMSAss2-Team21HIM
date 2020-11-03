@@ -14,21 +14,22 @@ simulation_batch = FixedBatchRunner(
         "NetTechnicalPosition": get_technical_position
     },
     parameters_list={
-        "initial_fundamentalist": 25,
-        "initial_technical": 25,
+        "initial_fundamentalist": 200,
+        "initial_technical": 200,
         "initial_mimetic": 0,
         "initial_noise": 0,
         "simulation_period": 1,
         "network_type": "small world"
     },
-    # max_steps=100
+    max_steps=10
 )
 model = HeterogeneityInArtificialMarket()
 simulation_batch.run_model(model)
 
 df = model.datacollector.get_model_vars_dataframe()
+df.to_csv("batch_record.csv", header=True, index=False)
 df_position = df[['NetFundamentalPosition', 'NetTechnicalPosition']]
-sns.lineplot(data=df_position)
+sns.lineplot(data=df_position[1500:1750])
 plt.xlabel('Time step')
 plt.ylabel('Position')
 plt.title('Net position changing over time')
