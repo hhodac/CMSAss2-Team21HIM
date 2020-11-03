@@ -26,12 +26,30 @@ def get_market_value(model):
 def get_market_order(model):
     return model.market_maker.get_current_order()
 
+
 def get_fundamental_position(model):
-    pass
+    time_step = model.schedule.time
+
+    all_positions = []
+
+    for trader in model.fundamental_traders:
+        position = trader.get_position(time_step)
+        all_positions.append(position)
+
+    return sum(all_positions)
+
 
 def get_technical_position(model):
+    time_step = model.schedule.time
 
-    pass
+    all_positions = []
+
+    for trader in model.technical_traders:
+        position = trader.get_position(time_step)
+        all_positions.append(position)
+
+    return sum(all_positions)
+
 
 class HeterogeneityInArtificialMarket(Model):
     """A model for simulating effect of heterogeneous type of traders on an artificial market model"""
@@ -107,6 +125,12 @@ class HeterogeneityInArtificialMarket(Model):
                                        sigma_value=self.SIGMA_VALUE, mu_price=self.MU_PRICE,
                                        sigma_price=self.SIGMA_PRICE, liquidity=self.liquidity)
 
+        # List of trader objects
+        self.fundamental_traders = []
+        self.technical_traders = []
+        self.mimetic_traders = []
+        self.noise_traders = []
+
         # Initialize traders & networks
         if network_type == "customize":
             self.network, self.G = self.generate_trader_networks()
@@ -119,7 +143,9 @@ class HeterogeneityInArtificialMarket(Model):
             model_reporters={
                 "Price": get_market_price,
                 "FundamentalValue": get_market_value,
-                "Order": get_market_order
+                "Order": get_market_order,
+                "NetFundamentalPosition": get_fundamental_position,
+                "NetTechnicalPosition": get_technical_position
             }
         )
         # self.datacollector.collect(self)
@@ -143,24 +169,28 @@ class HeterogeneityInArtificialMarket(Model):
         # Create fundamentalist traders:
         for id in self.ftrader_ids:
             ftrader = Fundamentalist(id, self)
+            self.fundamental_traders.append(ftrader)
             self.network.place_agent(ftrader, id)
             self.schedule.add(ftrader)
 
         # Create technical traders:
         for id in self.ttrader_ids:
             ttrader = Technical(id, self)
+            self.technical_traders.append(ttrader)
             self.network.place_agent(ttrader, id)
             self.schedule.add(ttrader)
 
         # Create mimetic traders:
         for id in self.mtrader_ids:
             mtrader = Mimetic(id, self)
+            self.mimetic_traders.append(mtrader)
             self.network.place_agent(mtrader, id)
             self.schedule.add(mtrader)
 
         # Create noise traders:
         for id in self.ntrader_ids:
             ntrader = Noise(id, self)
+            self.noise_traders.append(ntrader)
             self.network.place_agent(ntrader, id)
             self.schedule.add(ntrader)
 
@@ -233,14 +263,10 @@ class HeterogeneityInArtificialMarket(Model):
 
         self.datacollector.collect(self)
         if self.verbose:
-            print(
-                [
-                    self.schedule.time,
-                    self.market_maker.get_current_price(),
-                    self.market_maker.get_current_value(),
-                    self.market_maker.get_current_order()
-                ]
-            )
+            print("Step: {}, Value: {}, Price: {}, Orders: {}, F-pos: {}, "
+                  "T-pos: {}".format(self.schedule.time, self.market_maker.get_current_value(),
+                                     self.market_maker.get_current_price(), self.market_maker.get_current_order(),
+                                     get_fundamental_position(self), get_technical_position(self)))
         pass
 
     def run_model(self, year_lapse=5):

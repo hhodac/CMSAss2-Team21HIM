@@ -14,6 +14,9 @@ class Trader(Agent):
         self.trade(self.model.schedule.time)
         return
 
+    def get_position(self, t):
+        return self.position[t]
+
     def get_order(self, t):
         return self.order[t]
 
