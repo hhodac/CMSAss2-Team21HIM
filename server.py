@@ -20,18 +20,21 @@ TRADER_COLOR = {
     "NOISE": "#454545",             # Gray
 }
 
+def get_agent_type(agent):
+    if isinstance(agent, Fundamentalist):
+        return "FUNDAMENTALIST"
+    elif isinstance(agent, Technical):
+        return "TECHNICAL"
+    elif isinstance(agent, Mimetic):
+        return "MIMETIC"
+    elif isinstance(agent, Noise):
+        return "NOISE"
+
 def network_portrayal(G):
     # The model ensures there is always 1 agent per node
 
     def node_color(agent):
-        if isinstance(agent, Fundamentalist):
-            return TRADER_COLOR["FUNDAMENTALIST"]
-        elif isinstance(agent, Technical):
-            return TRADER_COLOR["TECHNICAL"]
-        elif isinstance(agent, Mimetic):
-            return TRADER_COLOR["MIMETIC"]
-        elif isinstance(agent, Noise):
-            return TRADER_COLOR["NOISE"]
+        return TRADER_COLOR[get_agent_type(agent)]
 
     portrayal = dict()
     nodes = list()
@@ -39,8 +42,8 @@ def network_portrayal(G):
         node = dict()
         node["size"] = 6
         node["color"] = node_color(agents[0])
-        # node["tooltip"]= "id: {}<br>state: {}".format(
-        #     agents[0].unique_id, agents[0].type)
+        node["tooltip"]= "id: {}<br>type: {}".format(
+            agents[0].unique_id, get_agent_type(agents[0]))
         nodes.append(node)
     portrayal["nodes"] = nodes
 
@@ -71,6 +74,9 @@ model_params = {
     "initial_noise": UserSettableParameter(
         "slider", "noise_traders", 25, 0, 1000, description="Number of Noise Traders"
     ),
+    "simulation_period": UserSettableParameter(
+        "slider", "simulation_period", 1, 1, 10, description="Simulation year lapse"
+    ),
     "network_type": UserSettableParameter(
         "choice", "network_type", value="customize", choices=["customize", "small world"]
     ),
@@ -82,6 +88,9 @@ chart_element = ChartModule(
     [
         {"Label": "Price", "Color": '#FF0000'},
         {"Label": "FundamentalValue", "Color": '#00FF00'},
+        # {"Label": "Order", "Color": '#0000FF'},
+        # {"Label": "NetFundamentalPosition", "Color": '#FAF00F'},
+        # {"Label": "NetTechnicalPosition", "Color": '#FF00FF'}
     ]
 )
 

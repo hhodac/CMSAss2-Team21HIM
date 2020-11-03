@@ -99,7 +99,8 @@ class HeterogeneityInArtificialMarket(Model):
             initial_technical=25,
             initial_mimetic=25,
             initial_noise=25,
-            network_type='customize'
+            network_type='customize',
+            simulation_period=5
     ):
         super().__init__()
         self.height = height
@@ -109,6 +110,7 @@ class HeterogeneityInArtificialMarket(Model):
         self.initial_technical = initial_technical
         self.initial_mimetic = initial_mimetic
         self.initial_noise = initial_noise
+        self.simulation_period = simulation_period
 
         self.liquidity = sum([initial_fundamentalist, initial_technical, initial_mimetic, initial_noise])
         self.verbose = True
@@ -269,7 +271,7 @@ class HeterogeneityInArtificialMarket(Model):
                                      get_fundamental_position(self), get_technical_position(self)))
         pass
 
-    def run_model(self, year_lapse=5):
+    def run_model(self):
         """Assuming there are 255 trading days per year.
         Total simulation period = 255 * year_lapse.
         Each step represents a trading day.
@@ -285,7 +287,7 @@ class HeterogeneityInArtificialMarket(Model):
             print("Initial number noise: ", self.initial_noise)
             print("Current market price: :", self.market_maker.get_current_price())
 
-        total_time_lapse = 255 * year_lapse
+        total_time_lapse = 255 * self.simulation_period
         for i in range(total_time_lapse):
             self.step()
 
