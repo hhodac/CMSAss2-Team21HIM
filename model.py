@@ -287,7 +287,7 @@ class HeterogeneityInArtificialMarket(Model):
             print("Initial number noise: ", self.initial_noise)
             print("Current market price: :", self.market_maker.get_current_price())
 
-        total_time_lapse = 255 * self.simulation_period
+        total_time_lapse = 5 * self.simulation_period
         for i in range(total_time_lapse):
             self.step()
 
