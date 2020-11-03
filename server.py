@@ -74,9 +74,6 @@ model_params = {
     "initial_noise": UserSettableParameter(
         "slider", "noise_traders", 25, 0, 1000, description="Number of Noise Traders"
     ),
-    "simulation_period": UserSettableParameter(
-        "slider", "simulation_period", 1, 1, 10, description="Simulation year lapse"
-    ),
     "network_type": UserSettableParameter(
         "choice", "network_type", value="customize", choices=["customize", "small world"]
     ),

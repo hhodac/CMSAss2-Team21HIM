@@ -271,25 +271,25 @@ class HeterogeneityInArtificialMarket(Model):
                                      get_fundamental_position(self), get_technical_position(self)))
         pass
 
-    def run_model(self):
-        """Assuming there are 255 trading days per year.
-        Total simulation period = 255 * year_lapse.
-        Each step represents a trading day.
-
-        :param year_lapse: simulation period
-        :return:
-        """
-
-        if self.verbose:
-            print("Initial number fundamentalist: ", self.initial_fundamentalist)
-            print("Initial number technical: ", self.initial_technical)
-            print("Initial number mimetic: ", self.initial_mimetic)
-            print("Initial number noise: ", self.initial_noise)
-            print("Current market price: :", self.market_maker.get_current_price())
-
-        total_time_lapse = 5 * self.simulation_period
-        for i in range(total_time_lapse):
-            self.step()
+    # def run_model(self):
+    #     """Assuming there are 255 trading days per year.
+    #     Total simulation period = 255 * year_lapse.
+    #     Each step represents a trading day.
+    #
+    #     :param year_lapse: simulation period
+    #     :return:
+    #     """
+    #
+    #     if self.verbose:
+    #         print("Initial number fundamentalist: ", self.initial_fundamentalist)
+    #         print("Initial number technical: ", self.initial_technical)
+    #         print("Initial number mimetic: ", self.initial_mimetic)
+    #         print("Initial number noise: ", self.initial_noise)
+    #         print("Current market price: :", self.market_maker.get_current_price())
+    #
+    #     total_time_lapse = 5 * self.simulation_period
+    #     for i in range(total_time_lapse):
+    #         self.step()
 
     def get_network(self):
         return self.network
