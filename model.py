@@ -113,7 +113,7 @@ class HeterogeneityInArtificialMarket(Model):
         self.datacollector = DataCollector(
             model_reporters={
                 # "Price": get_market_price,
-                "Price": self.get_market_parameters(param_name='price')
+                # "Price": self.get_market_parameters(param_name='price')
                 # "FundamentalValue": get_market_value,
                 # "Order": get_market_order,
                 # "NetFundamentalPosition": get_fundamental_position,
