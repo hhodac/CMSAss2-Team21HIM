@@ -115,11 +115,35 @@ class HeterogeneityInArtificialMarket(Model):
                 "current_value": lambda m: m.get_market_parameters(param_name='value'),
                 "net_orders": lambda m: m.get_market_parameters(param_name='order'),
 
-                "pos_ftrader_mean": lambda m: m.get_agent_stats(trader_type='fundamental', param_name='position', stats_type='mean'),
-                "pos_ttrader_mean": lambda m: m.get_agent_stats(trader_type='technical', param_name='position', stats_type='mean'),
-                "pos_mtrader_mean": lambda m: m.get_agent_stats(trader_type='mimetic', param_name='position', stats_type='mean'),
-                "pos_ntrader_mean": lambda m: m.get_agent_stats(trader_type='noise', param_name='position', stats_type='mean'),
-                "pos_all_mean": lambda m: m.get_agent_stats(trader_type='all', param_name='position', stats_type='mean')
+                "position_ftrader_mean": lambda m: m.get_agent_stats(trader_type='fundamental', param_name='position', stats_type='mean'),
+                "position_ttrader_mean": lambda m: m.get_agent_stats(trader_type='technical', param_name='position', stats_type='mean'),
+                "position_mtrader_mean": lambda m: m.get_agent_stats(trader_type='mimetic', param_name='position', stats_type='mean'),
+                "position_ntrader_mean": lambda m: m.get_agent_stats(trader_type='noise', param_name='position', stats_type='mean'),
+                "position_all_mean": lambda m: m.get_agent_stats(trader_type='all', param_name='position', stats_type='mean'),
+
+                "order_ftrader_mean": lambda m: m.get_agent_stats(trader_type='fundamental', param_name='order', stats_type='mean'),
+                "order_ttrader_mean": lambda m: m.get_agent_stats(trader_type='technical', param_name='order', stats_type='mean'),
+                "order_mtrader_mean": lambda m: m.get_agent_stats(trader_type='mimetic', param_name='order', stats_type='mean'),
+                "order_ntrader_mean": lambda m: m.get_agent_stats(trader_type='noise', param_name='order', stats_type='mean'),
+                "order_all_mean": lambda m: m.get_agent_stats(trader_type='all', param_name='order', stats_type='mean'),
+
+                "portfolio_ftrader_mean": lambda m: m.get_agent_stats(trader_type='fundamental', param_name='portfolio', stats_type='mean'),
+                "portfolio_ttrader_mean": lambda m: m.get_agent_stats(trader_type='technical', param_name='portfolio', stats_type='mean'),
+                "portfolio_mtrader_mean": lambda m: m.get_agent_stats(trader_type='mimetic', param_name='portfolio', stats_type='mean'),
+                "portfolio_ntrader_mean": lambda m: m.get_agent_stats(trader_type='noise', param_name='portfolio', stats_type='mean'),
+                "portfolio_all_mean": lambda m: m.get_agent_stats(trader_type='all', param_name='portfolio', stats_type='mean'),
+
+                "cash_ftrader_mean": lambda m: m.get_agent_stats(trader_type='fundamental', param_name='cash', stats_type='mean'),
+                "cash_ttrader_mean": lambda m: m.get_agent_stats(trader_type='technical', param_name='cash', stats_type='mean'),
+                "cash_mtrader_mean": lambda m: m.get_agent_stats(trader_type='mimetic', param_name='cash', stats_type='mean'),
+                "cash_ntrader_mean": lambda m: m.get_agent_stats(trader_type='noise', param_name='cash', stats_type='mean'),
+                "cash_all_mean": lambda m: m.get_agent_stats(trader_type='all', param_name='cash', stats_type='mean'),
+
+                "wealth_ftrader_mean": lambda m: m.get_agent_stats(trader_type='fundamental', param_name='wealth', stats_type='mean'),
+                "wealth_ttrader_mean": lambda m: m.get_agent_stats(trader_type='technical', param_name='wealth', stats_type='mean'),
+                "wealth_mtrader_mean": lambda m: m.get_agent_stats(trader_type='mimetic', param_name='wealth', stats_type='mean'),
+                "wealth_ntrader_mean": lambda m: m.get_agent_stats(trader_type='noise', param_name='wealth', stats_type='mean'),
+                "wealth_all_mean": lambda m: m.get_agent_stats(trader_type='all', param_name='wealth', stats_type='mean')
             }
         )
         # self.datacollector.collect(self)

@@ -6,7 +6,7 @@ import time
 
 def run_simulation(i):
     print("Iteration {} running...".format(i))
-    batch = FixedBatchRunner(model_cls=HeterogeneityInArtificialMarket, max_steps=150)
+    batch = FixedBatchRunner(model_cls=HeterogeneityInArtificialMarket, max_steps=100)
     model = HeterogeneityInArtificialMarket(
         initial_fundamentalist=50,
         initial_technical=50,
