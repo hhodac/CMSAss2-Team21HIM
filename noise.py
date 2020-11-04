@@ -12,5 +12,13 @@ class Noise(Trader):
     def trade(self, t):
         """Describe trading behavior of fundamentalist trader"""
         order = draw_from_normal(mu=0.0, sigma=1.0)
-        self.order.append(order)
-        self.market_maker.submit_order(order)
+
+        if self.is_within_risk_tolerance():
+            self.position.append(self.position[-1] + order)
+            self.order.append(order)
+            self.market_maker.submit_order(order)
+        else:
+            self.position.append(self.position[-1])
+            self.order.append(0.0)
+
+        self.update_agent_finances()
