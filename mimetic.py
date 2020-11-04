@@ -13,6 +13,7 @@ class Mimetic(Trader):
         """Describe trading behavior of fundamentalist trader"""
         if t == 0:
             self.order.append(0)
+            self.position.append(0)
         else:
             neighbors_nodes = self.model_reference.network.get_neighbors(node_id=self.unique_id, include_center=False)
             chosen_successor = self.random.sample(self.model_reference.network.get_cell_list_contents(neighbors_nodes), 1)
