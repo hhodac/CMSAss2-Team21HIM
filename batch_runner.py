@@ -1,6 +1,7 @@
 from mesa.batchrunner import FixedBatchRunner
 from model import *
 import multiprocessing
+import time
 
 def fixed_batch_init():
     """
@@ -47,6 +48,7 @@ def run_simulation(i):
     print("Iteration {} completed.".format(i))
 
 # Activate multiprocessing
+start_time = time.time()
 print("Start multiprocessing...")
 
 optimal_thread_count = multiprocessing.cpu_count()
@@ -59,3 +61,6 @@ pool.close()
 pool.join()
 
 print("Completed!")
+end_time = time.time()
+duration = end_time - start_time
+print("Processing time: {}".format(duration))
