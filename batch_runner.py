@@ -13,10 +13,10 @@ def fixed_batch_init():
     params = {
         "initial_fundamentalist": 100,
         "initial_technical": 100,
-        "initial_mimetic": 0,
-        "initial_noise": 0,
+        "initial_mimetic": 100,
+        "initial_noise": 100,
         "network_type": "small world",
-        "verbose": True
+        "verbose": False
     }
 
     # Model reporter (similar to data collector from model.py)
@@ -27,14 +27,14 @@ def fixed_batch_init():
         "net_orders": lambda m: m.get_market_parameters(param_name='order'),
 
         "pos_ftrader_mean": lambda m: m.get_agent_stats(trader_type='fundamental', param_name='position', stats_type='mean'),
-        "pos_ttrader_mean": lambda m: m.get_agent_stats(trader_type='fundamental', param_name='position', stats_type='mean'),
-        "pos_mtrader_mean": lambda m: m.get_agent_stats(trader_type='fundamental', param_name='position', stats_type='mean'),
-        "pos_ntrader_mean": lambda m: m.get_agent_stats(trader_type='fundamental', param_name='position', stats_type='mean'),
-        "pos_all_mean": lambda m: m.get_agent_stats(trader_type='fundamental', param_name='position', stats_type='mean')
+        "pos_ttrader_mean": lambda m: m.get_agent_stats(trader_type='technical', param_name='position', stats_type='mean'),
+        "pos_mtrader_mean": lambda m: m.get_agent_stats(trader_type='mimetic', param_name='position', stats_type='mean'),
+        "pos_ntrader_mean": lambda m: m.get_agent_stats(trader_type='noise', param_name='position', stats_type='mean'),
+        "pos_all_mean": lambda m: m.get_agent_stats(trader_type='all', param_name='position', stats_type='mean')
     }
 
     # Define number of maximum iterations
-    max_iterations = 1530
+    max_iterations = 100
 
     # Generate fixed batch runner object
     batch = FixedBatchRunner(
