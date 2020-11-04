@@ -237,17 +237,17 @@ class HeterogeneityInArtificialMarket(Model):
 
         self.datacollector.collect(self)
         if self.VERBOSE:
-            print("Step: {}, Value: {}, Price: {}, Orders: {}, F-avg-pos: {}, T-avg-pos: {}, F-avg-wealth: {}, "
-                  "T-avg-wealth: {}".format(self.schedule.time, self.market_maker.get_current_value(),
+            print("Step: {}, Value: {}, Price: {}, Orders: {}, F-sum-pos: {}, T-sum-pos: {}, F-median-wealth: {}, "
+                  "T-median-wealth: {}".format(self.schedule.time, self.market_maker.get_current_value(),
                                         self.market_maker.get_current_price(), self.market_maker.get_current_order(),
-                                        get_stats(self, stats_type='avg', param_name='position',
-                                                  trader_list=self.fundamental_traders),
-                                        get_stats(self, stats_type='avg', param_name='position',
-                                                  trader_list=self.technical_traders),
-                                        get_stats(self, stats_type='avg', param_name='wealth',
-                                                  trader_list=self.fundamental_traders),
-                                        get_stats(self, stats_type='avg', param_name='wealth',
-                                                  trader_list=self.technical_traders)))
+                                        self.get_stats(trader_type='fundamental',
+                                                       param_name='position', stats_type='sum'),
+                                        self.get_stats(trader_type='technical',
+                                                       param_name='position', stats_type='sum'),
+                                        self.get_stats(trader_type='fundamental',
+                                                       param_name='wealth', stats_type='median'),
+                                        self.get_stats(trader_type='technical',
+                                                       param_name='wealth', stats_type='median')))
         pass
 
     # def run_model(self):
@@ -303,15 +303,15 @@ class HeterogeneityInArtificialMarket(Model):
         all_parameters = []
         for trader in trader_list:
             if param_name == 'position':
-                all_parameters.append(trader.get_position(model.schedule.time))
+                all_parameters.append(trader.get_position(self.schedule.time))
             elif param_name == 'order':
-                all_parameters.append(trader.get_order(model.schedule.time))
+                all_parameters.append(trader.get_order(self.schedule.time))
             elif param_name == 'portfolio':
-                all_parameters.append(trader.get_portfolio(model.schedule.time))
+                all_parameters.append(trader.get_portfolio(self.schedule.time))
             elif param_name == 'cash':
-                all_parameters.append(trader.get_cash(model.schedule.time))
+                all_parameters.append(trader.get_cash(self.schedule.time))
             elif param_name == 'wealth':
-                all_parameters.append(trader.get_net_wealth(model.schedule.time))
+                all_parameters.append(trader.get_net_wealth(self.schedule.time))
             else:
                 print("Error, unknown parameter type")
                 exit()
