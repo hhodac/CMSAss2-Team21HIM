@@ -8,6 +8,7 @@ def fixed_batch_init():
     """
     Initializes and returns batch runner with fixed-parameters.
     """
+
     # Define fixed-parameters here
     params = {
         "initial_fundamentalist": 100,
@@ -15,7 +16,7 @@ def fixed_batch_init():
         "initial_mimetic": 0,
         "initial_noise": 0,
         "network_type": "small world",
-        "verbose": False
+        "verbose": True
     }
 
     # Model reporter (similar to data collector from model.py)
@@ -56,23 +57,21 @@ def run_simulation(i):
     df.to_csv(file_name, header=True, index=False)
     print("Iteration {} completed.".format(i))
 
+# Activate multiprocessing
+start_time = time.time()
+print("Start multiprocessing...")
 
-if __name__ == '__main__':
-    # Activate multiprocessing
-    start_time = time.time()
-    print("Start multiprocessing...")
+optimal_thread_count = multiprocessing.cpu_count()
+pool = multiprocessing.Pool(optimal_thread_count)
 
-    optimal_thread_count = multiprocessing.cpu_count()
-    pool = multiprocessing.Pool(optimal_thread_count)
+iterations = 10
+pool.map(run_simulation, list(range(iterations)))
 
-    iterations = 4
-    pool.map(run_simulation, list(range(iterations)))
+pool.close()
+pool.join()
 
-    pool.close()
-    pool.join()
-
-    print("Completed!")
-    end_time = time.time()
-    duration = end_time - start_time
-    print("Processing time: {}".format(duration))
+print("Completed!")
+end_time = time.time()
+duration = end_time - start_time
+print("Processing time: {}".format(duration))
 

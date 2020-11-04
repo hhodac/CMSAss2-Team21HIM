@@ -62,8 +62,6 @@ class HeterogeneityInArtificialMarket(Model):
     MU_RISK_TOLERANCE = 0.5
     SIGMA_RISK_TOLERANCE = 0.2
 
-    VERBOSE = False
-
     def __init__(
             self,
             initial_fundamentalist=25,
@@ -112,12 +110,16 @@ class HeterogeneityInArtificialMarket(Model):
         # Data collector for chart visualization
         self.datacollector = DataCollector(
             model_reporters={
-                # "Price": get_market_price,
-                # "Price": self.get_market_parameters(param_name='price')
-                # "FundamentalValue": get_market_value,
-                # "Order": get_market_order,
-                # "NetFundamentalPosition": get_fundamental_position,
-                # "NetTechnicalPosition": get_technical_position
+                "step": lambda m: m.schedule.time,
+                "current_price": lambda m: m.get_market_parameters(param_name='price'),
+                "current_value": lambda m: m.get_market_parameters(param_name='value'),
+                "net_orders": lambda m: m.get_market_parameters(param_name='order'),
+
+                "pos_ftrader_mean": lambda m: m.get_agent_stats(trader_type='fundamental', param_name='position', stats_type='mean'),
+                "pos_ttrader_mean": lambda m: m.get_agent_stats(trader_type='fundamental', param_name='position', stats_type='mean'),
+                "pos_mtrader_mean": lambda m: m.get_agent_stats(trader_type='fundamental', param_name='position', stats_type='mean'),
+                "pos_ntrader_mean": lambda m: m.get_agent_stats(trader_type='fundamental', param_name='position', stats_type='mean'),
+                "pos_all_mean": lambda m: m.get_agent_stats(trader_type='fundamental', param_name='position', stats_type='mean')
             }
         )
         # self.datacollector.collect(self)
@@ -236,17 +238,17 @@ class HeterogeneityInArtificialMarket(Model):
         self.schedule.step()
 
         self.datacollector.collect(self)
-        if self.VERBOSE:
+        if self.verbose:
             print("Step: {}, Value: {}, Price: {}, Orders: {}, F-sum-pos: {}, T-sum-pos: {}, F-median-wealth: {}, "
                   "T-median-wealth: {}".format(self.schedule.time, self.market_maker.get_current_value(),
                                         self.market_maker.get_current_price(), self.market_maker.get_current_order(),
-                                        self.get_stats(trader_type='fundamental',
+                                        self.get_agent_stats(trader_type='fundamental',
                                                        param_name='position', stats_type='sum'),
-                                        self.get_stats(trader_type='technical',
+                                        self.get_agent_stats(trader_type='technical',
                                                        param_name='position', stats_type='sum'),
-                                        self.get_stats(trader_type='fundamental',
+                                        self.get_agent_stats(trader_type='fundamental',
                                                        param_name='wealth', stats_type='median'),
-                                        self.get_stats(trader_type='technical',
+                                        self.get_agent_stats(trader_type='technical',
                                                        param_name='wealth', stats_type='median')))
         pass
 
