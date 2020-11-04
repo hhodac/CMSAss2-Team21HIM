@@ -33,14 +33,14 @@ def fixed_batch_init():
     }
 
     # Define number of maximum iterations
-    max_iterations = 1530
+    max_steps = 100
 
     # Generate fixed batch runner object
     batch = FixedBatchRunner(
         model_cls=HeterogeneityInArtificialMarket,
         model_reporters=model_reporters,
         fixed_parameters=params,
-        max_steps=max_iterations
+        max_steps=max_steps
     )
 
     return batch
