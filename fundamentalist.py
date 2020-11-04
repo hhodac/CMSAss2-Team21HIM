@@ -40,9 +40,14 @@ class Fundamentalist(Trader):
                 self.position.append(0)     # liquidate the position.
             else:
                 # If the liquidation condition is not satisfied update the position.
-                self.position.append(self.value_perception - self.current_price)
+                if self.is_within_risk_tolerance():
+                    self.position.append(self.value_perception - self.current_price)
+                else:
+                    self.position.append(self.position[-1])
 
         # Order > 0 : buy, Order = 0 : hold, Order < 0 : sell
         self.order.append(self.position[t] - self.position[t-1])
 
         self.market_maker.submit_order(self.order[t])
+
+        self.update_agent_finances()

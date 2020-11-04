@@ -1,6 +1,7 @@
 import networkx as nx
 from networkx.generators.random_graphs import watts_strogatz_graph
 import random
+import statistics
 
 from mesa import Model
 from mesa.time import RandomActivation
@@ -27,28 +28,41 @@ def get_market_order(model):
     return model.market_maker.get_current_order()
 
 
+def get_stats(model, stats_type, param_name, trader_list):
+    all_parameters = []
+
+    for trader in trader_list:
+        if param_name == 'position':
+            all_parameters.append(trader.get_position(model.schedule.time))
+        elif param_name == 'order':
+            all_parameters.append(trader.get_order(model.schedule.time))
+        elif param_name == 'portfolio':
+            all_parameters.append(trader.get_portfolio(model.schedule.time))
+        elif param_name == 'cash':
+            all_parameters.append(trader.get_cash(model.schedule.time))
+        elif param_name == 'wealth':
+            all_parameters.append(trader.get_net_wealth(model.schedule.time))
+
+    if stats_type == 'max':
+        return max(all_parameters)
+    elif stats_type == 'min':
+        return min(all_parameters)
+    elif stats_type == 'sum':
+        return sum(all_parameters)
+    elif stats_type == 'mean':
+        return statistics.mean(all_parameters)
+    elif stats_type == 'median':
+        return statistics.median(all_parameters)
+    elif stats_type == 'std':
+        return statistics.stdev(all_parameters)/len(all_parameters)
+
+
 def get_fundamental_position(model):
-    time_step = model.schedule.time
-
-    all_positions = []
-
-    for trader in model.fundamental_traders:
-        position = trader.get_position(time_step)
-        all_positions.append(position)
-
-    return sum(all_positions)
+    return get_stats(model, stats_type='sum', param_name='position', trader_list=model.fundamental_traders)
 
 
 def get_technical_position(model):
-    time_step = model.schedule.time
-
-    all_positions = []
-
-    for trader in model.technical_traders:
-        position = trader.get_position(time_step)
-        all_positions.append(position)
-
-    return sum(all_positions)
+    return get_stats(model, stats_type='sum', param_name='position', trader_list=model.technical_traders)
 
 
 class HeterogeneityInArtificialMarket(Model):
@@ -89,7 +103,13 @@ class HeterogeneityInArtificialMarket(Model):
     MU_PRICE = 0.0
     SIGMA_PRICE = 0.4
 
-    verbose = True  # Print-monitoring
+    # For all agents
+    PARETO_ALPHA = 1.3
+    PARETO_XM = 1.0
+    BASE_WEALTH = 1000.0
+
+    MU_RISK_TOLERANCE = 0.5
+    SIGMA_RISK_TOLERANCE = 0.2
 
     def __init__(
             self,
@@ -113,7 +133,7 @@ class HeterogeneityInArtificialMarket(Model):
         self.simulation_period = simulation_period
 
         self.liquidity = sum([initial_fundamentalist, initial_technical, initial_mimetic, initial_noise])
-        self.verbose = False
+        self.verbose = True
         self.network_type = network_type
 
         # ID list of agent type
@@ -265,10 +285,17 @@ class HeterogeneityInArtificialMarket(Model):
 
         self.datacollector.collect(self)
         if self.verbose:
-            print("Step: {}, Value: {}, Price: {}, Orders: {}, F-pos: {}, "
-                  "T-pos: {}".format(self.schedule.time, self.market_maker.get_current_value(),
-                                     self.market_maker.get_current_price(), self.market_maker.get_current_order(),
-                                     get_fundamental_position(self), get_technical_position(self)))
+            print("Step: {}, Value: {}, Price: {}, Orders: {}, F-avg-pos: {}, T-avg-pos: {}, F-avg-wealth: {}, "
+                  "T-avg-wealth: {}".format(self.schedule.time, self.market_maker.get_current_value(),
+                                        self.market_maker.get_current_price(), self.market_maker.get_current_order(),
+                                        get_stats(self, stats_type='avg', param_name='position',
+                                                  trader_list=self.fundamental_traders),
+                                        get_stats(self, stats_type='avg', param_name='position',
+                                                  trader_list=self.technical_traders),
+                                        get_stats(self, stats_type='avg', param_name='wealth',
+                                                  trader_list=self.fundamental_traders),
+                                        get_stats(self, stats_type='avg', param_name='wealth',
+                                                  trader_list=self.technical_traders)))
         pass
 
     # def run_model(self):

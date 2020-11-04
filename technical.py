@@ -60,7 +60,10 @@ class Technical(Trader):
                 self.position.append(0)     # liquidate long position.
             else:
                 # If the liquidation condition is not satisfied update with long position.
-                self.position.append(self.normalization_constant * abs(self.slope_difference[t]))
+                if self.is_within_risk_tolerance():
+                    self.position.append(self.normalization_constant * abs(self.slope_difference[t]))
+                else:
+                    self.position.append(self.position[-1])
 
         elif self.position[t-1] < 0:
             # Liquidation condition. (current price is the highest in the last "window" days)
@@ -68,12 +71,17 @@ class Technical(Trader):
                 self.position.append(0)     # liquidate short position.
             else:
                 # If the liquidation condition is not satisfied update with short position.
-                self.position.append(-1 * self.normalization_constant * abs(self.slope_difference[t]))
+                if self.is_within_risk_tolerance():
+                    self.position.append(-1 * self.normalization_constant * abs(self.slope_difference[t]))
+                else:
+                    self.position.append(self.position[-1])
 
         # Order > 0 : buy, Order = 0 : hold, Order < 0 : sell
         self.order.append(self.position[t] - self.position[t-1])
 
         self.market_maker.submit_order(self.order[t])
+
+        self.update_agent_finances()
 
     def _compute_moving_average(self, t, window):
         """

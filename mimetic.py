@@ -17,5 +17,13 @@ class Mimetic(Trader):
             neighbors_nodes = self.model_reference.network.get_neighbors(node_id=self.unique_id, include_center=False)
             chosen_successor = self.random.sample(self.model_reference.network.get_cell_list_contents(neighbors_nodes), 1)
             order = chosen_successor[0].get_order(t-1)
-            self.order.append(order)
-            self.market_maker.submit_order(order)
+
+            if self.is_within_risk_tolerance():
+                self.position.append(self.position[-1] + order)
+                self.order.append(order)
+                self.market_maker.submit_order(order)
+            else:
+                self.position.append(self.position[-1])
+                self.order.append(0.0)
+
+        self.update_agent_finances()
