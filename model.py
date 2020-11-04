@@ -16,10 +16,6 @@ from noise import Noise
 from market import MarketMaker
 
 
-def get_market_order(model):
-    return 1.0
-
-
 class HeterogeneityInArtificialMarket(Model):
     """A model for simulating effect of heterogeneous type of traders on an artificial market model"""
 
@@ -70,28 +66,23 @@ class HeterogeneityInArtificialMarket(Model):
 
     def __init__(
             self,
-            height=50,
-            width=50,
             initial_fundamentalist=25,
             initial_technical=25,
             initial_mimetic=25,
             initial_noise=25,
             network_type='customize',
-            simulation_period=5
+            verbose=True
     ):
         super().__init__()
-        self.height = height
-        self.width = width
 
         self.initial_fundamentalist = initial_fundamentalist
         self.initial_technical = initial_technical
         self.initial_mimetic = initial_mimetic
         self.initial_noise = initial_noise
-        self.simulation_period = simulation_period
-
-        self.liquidity = sum([initial_fundamentalist, initial_technical, initial_mimetic, initial_noise])
 
         self.network_type = network_type
+        self.verbose = verbose
+        self.liquidity = sum([initial_fundamentalist, initial_technical, initial_mimetic, initial_noise])
 
         # ID list of agent type
         self.ftrader_ids, self.ttrader_ids, self.mtrader_ids, self.ntrader_ids, = self.generate_traders_id()
@@ -121,11 +112,12 @@ class HeterogeneityInArtificialMarket(Model):
         # Data collector for chart visualization
         self.datacollector = DataCollector(
             model_reporters={
-                "Price": get_market_price,
-                "FundamentalValue": get_market_value,
-                "Order": get_market_order,
-                "NetFundamentalPosition": get_fundamental_position,
-                "NetTechnicalPosition": get_technical_position
+                # "Price": get_market_price,
+                "Price": self.get_market_parameters(param_name='price')
+                # "FundamentalValue": get_market_value,
+                # "Order": get_market_order,
+                # "NetFundamentalPosition": get_fundamental_position,
+                # "NetTechnicalPosition": get_technical_position
             }
         )
         # self.datacollector.collect(self)
@@ -292,7 +284,7 @@ class HeterogeneityInArtificialMarket(Model):
             print("Error, unknown param_name in get_market_parameter")
             exit()
 
-    def get_agent_stats(self, stats_type, param_name, trader_type):
+    def get_agent_stats(self, trader_type, param_name, stats_type):
         trader_list = []
         if trader_type == "fundamental":
             trader_list = self.fundamental_traders
