@@ -16,53 +16,8 @@ from noise import Noise
 from market import MarketMaker
 
 
-def get_market_price(model):
-    return model.market_maker.get_current_price()
-
-
-def get_market_value(model):
-    return model.market_maker.get_current_value()
-
-
 def get_market_order(model):
-    return model.market_maker.get_current_order()
-
-
-def get_stats(model, stats_type, param_name, trader_list):
-    all_parameters = []
-
-    for trader in trader_list:
-        if param_name == 'position':
-            all_parameters.append(trader.get_position(model.schedule.time))
-        elif param_name == 'order':
-            all_parameters.append(trader.get_order(model.schedule.time))
-        elif param_name == 'portfolio':
-            all_parameters.append(trader.get_portfolio(model.schedule.time))
-        elif param_name == 'cash':
-            all_parameters.append(trader.get_cash(model.schedule.time))
-        elif param_name == 'wealth':
-            all_parameters.append(trader.get_net_wealth(model.schedule.time))
-
-    if stats_type == 'max':
-        return max(all_parameters)
-    elif stats_type == 'min':
-        return min(all_parameters)
-    elif stats_type == 'sum':
-        return sum(all_parameters)
-    elif stats_type == 'mean':
-        return statistics.mean(all_parameters)
-    elif stats_type == 'median':
-        return statistics.median(all_parameters)
-    elif stats_type == 'std':
-        return statistics.stdev(all_parameters)/len(all_parameters)
-
-
-def get_fundamental_position(model):
-    return get_stats(model, stats_type='sum', param_name='position', trader_list=model.fundamental_traders)
-
-
-def get_technical_position(model):
-    return get_stats(model, stats_type='sum', param_name='position', trader_list=model.technical_traders)
+    return 1.0
 
 
 class HeterogeneityInArtificialMarket(Model):
@@ -111,6 +66,8 @@ class HeterogeneityInArtificialMarket(Model):
     MU_RISK_TOLERANCE = 0.5
     SIGMA_RISK_TOLERANCE = 0.2
 
+    VERBOSE = False
+
     def __init__(
             self,
             height=50,
@@ -133,7 +90,7 @@ class HeterogeneityInArtificialMarket(Model):
         self.simulation_period = simulation_period
 
         self.liquidity = sum([initial_fundamentalist, initial_technical, initial_mimetic, initial_noise])
-        self.verbose = True
+
         self.network_type = network_type
 
         # ID list of agent type
@@ -152,6 +109,7 @@ class HeterogeneityInArtificialMarket(Model):
         self.technical_traders = []
         self.mimetic_traders = []
         self.noise_traders = []
+        self.all_traders = []
 
         # Initialize traders & networks
         if network_type == "customize":
@@ -215,6 +173,8 @@ class HeterogeneityInArtificialMarket(Model):
             self.noise_traders.append(ntrader)
             self.network.place_agent(ntrader, id)
             self.schedule.add(ntrader)
+
+        self.all_traders = self.fundamental_traders + self.technical_traders + self.mimetic_traders + self.noise_traders
 
         pass
 
@@ -284,7 +244,7 @@ class HeterogeneityInArtificialMarket(Model):
         self.schedule.step()
 
         self.datacollector.collect(self)
-        if self.verbose:
+        if self.VERBOSE:
             print("Step: {}, Value: {}, Price: {}, Orders: {}, F-avg-pos: {}, T-avg-pos: {}, F-avg-wealth: {}, "
                   "T-avg-wealth: {}".format(self.schedule.time, self.market_maker.get_current_value(),
                                         self.market_maker.get_current_price(), self.market_maker.get_current_order(),
@@ -307,7 +267,7 @@ class HeterogeneityInArtificialMarket(Model):
     #     :return:
     #     """
     #
-    #     if self.verbose:
+    #     if self.VERBOSE:
     #         print("Initial number fundamentalist: ", self.initial_fundamentalist)
     #         print("Initial number technical: ", self.initial_technical)
     #         print("Initial number mimetic: ", self.initial_mimetic)
@@ -320,3 +280,63 @@ class HeterogeneityInArtificialMarket(Model):
 
     def get_network(self):
         return self.network
+
+    def get_market_parameters(self, param_name):
+        if param_name == "price":
+            return self.market_maker.get_current_price()
+        elif param_name == "value":
+            return self.market_maker.get_current_value()
+        elif param_name == "order":
+            return self.market_maker.get_current_order()
+        else:
+            print("Error, unknown param_name in get_market_parameter")
+            exit()
+
+    def get_agent_stats(self, stats_type, param_name, trader_type):
+        trader_list = []
+        if trader_type == "fundamental":
+            trader_list = self.fundamental_traders
+        elif trader_type == "technical":
+            trader_list = self.technical_traders
+        elif trader_type == "mimetic":
+            trader_list = self.mimetic_traders
+        elif trader_type == "noise":
+            trader_list = self.noise_traders
+        elif trader_type == "all":
+            trader_list = self.all_traders
+        else:
+            print("Error, unknown agent type")
+            exit()
+
+        all_parameters = []
+        for trader in trader_list:
+            if param_name == 'position':
+                all_parameters.append(trader.get_position(model.schedule.time))
+            elif param_name == 'order':
+                all_parameters.append(trader.get_order(model.schedule.time))
+            elif param_name == 'portfolio':
+                all_parameters.append(trader.get_portfolio(model.schedule.time))
+            elif param_name == 'cash':
+                all_parameters.append(trader.get_cash(model.schedule.time))
+            elif param_name == 'wealth':
+                all_parameters.append(trader.get_net_wealth(model.schedule.time))
+            else:
+                print("Error, unknown parameter type")
+                exit()
+
+        if stats_type == 'max':
+            return max(all_parameters)
+        elif stats_type == 'min':
+            return min(all_parameters)
+        elif stats_type == 'sum':
+            return sum(all_parameters)
+        elif stats_type == 'mean':
+            return statistics.mean(all_parameters)
+        elif stats_type == 'median':
+            return statistics.median(all_parameters)
+        elif stats_type == 'std':
+            return statistics.stdev(all_parameters) / len(all_parameters)
+        else:
+            print("Error, unknown stats type")
+            exit()
+

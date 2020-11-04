@@ -18,15 +18,15 @@ def fixed_batch_init():
 
     # Model reporter (similar to data collector from model.py)
     model_reporters = {
-        "Price": get_market_price,
-        "FundamentalValue": get_market_value,
-        "Order": get_market_order,
-        "NetFundamentalPosition": get_fundamental_position,
-        "NetTechnicalPosition": get_technical_position
+        "price": lambda m: m.get_market_parameters(param_name='price'),
+        "value": lambda m: m.get_market_parameters(param_name='value')
+        # "Order": get_market_order
+        # "NetFundamentalPosition": get_fundamental_position,
+        # "NetTechnicalPosition": get_technical_position
     }
 
     # Define number of maximum iterations
-    MAX_ITERATIONS = 1800
+    MAX_ITERATIONS = 1530
 
     # Generate fixed batch runner object
     batch = FixedBatchRunner(
@@ -54,7 +54,7 @@ print("Start multiprocessing...")
 optimal_thread_count = multiprocessing.cpu_count()
 pool = multiprocessing.Pool(optimal_thread_count)
 
-iterations = 10
+iterations = 1
 pool.map(run_simulation, list(range(iterations)))
 
 pool.close()
