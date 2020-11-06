@@ -24,6 +24,11 @@ class HeterogeneityInArtificialMarket(Model):
     )
 
     # Global variables
+    # For market maker V_{t} = V_{t-1} + N(0, sigma) + TREND_MAGNITUDE
+    TREND_SIZE = 0.0
+    TREND_START_TIME = 100
+    TREND_END_TIME = 200
+
     # For Fundamentalist Traders
     VALUE_PERCEPTION_MIN = -8.0
     VALUE_PERCEPTION_MAX = 8.0
@@ -90,8 +95,10 @@ class HeterogeneityInArtificialMarket(Model):
 
         # Initialize market maker
         self.market_maker = MarketMaker(initial_value=self.INITIAL_VALUE, mu_value=self.MU_VALUE,
-                                       sigma_value=self.SIGMA_VALUE, mu_price=self.MU_PRICE,
-                                       sigma_price=self.SIGMA_PRICE, liquidity=self.liquidity)
+                                        sigma_value=self.SIGMA_VALUE, mu_price=self.MU_PRICE,
+                                        sigma_price=self.SIGMA_PRICE, liquidity=self.liquidity,
+                                        trend_size=self.TREND_MAGNITUDE, trend_start=self.TREND_START_TIME,
+                                        trend_end=self.TREND_END_TIME)
 
         # List of trader objects
         self.fundamental_traders = []
