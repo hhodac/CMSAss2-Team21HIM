@@ -16,12 +16,12 @@ sns.set_style("whitegrid")
 
 def run_simulation(i):
     print("Iteration {} running...".format(i))
-    batch = FixedBatchRunner(model_cls=HeterogeneityInArtificialMarket, max_steps=50)
+    batch = FixedBatchRunner(model_cls=HeterogeneityInArtificialMarket, max_steps=1000)
     model = HeterogeneityInArtificialMarket(
         initial_fundamentalist=50,
         initial_technical=50,
-        initial_mimetic=50,
-        initial_noise=50,
+        initial_mimetic=0,
+        initial_noise=0,
         network_type="small world",
         verbose=False
     )
@@ -45,23 +45,23 @@ def get_stylized_facts():
         df_list.append(_df_position)
 
     n_rows, _ = df_list[0].shape
-    print("Current price:\n", df_list[0]["current_price"])
+    # print("Current price:\n", df_list[0]["current_price"])
     df = pd.concat(df_list, axis=0)
-    print("Concatenated:\n", df)
+    # print("Concatenated:\n", df)
     all_prices = df.current_price.to_numpy().reshape(len(file_list), n_rows)
-    print("Prices:\n", all_prices)
+    # print("Prices:\n", all_prices)
 
     all_returns = get_returns(all_prices)
-    print("Returns:\n", all_returns)
+    # print("Returns:\n", all_returns)
 
     # Returns Autocorrelation
     returns_autocorr = get_returns_autocorrelation(all_returns, lags=35)
-    print("Returns Autocorr:\n", returns_autocorr)
+    # print("Returns Autocorr:\n", returns_autocorr)
 
     # Volatility clustering (Absolute returns autocorrelation)
     absolute_returns = [returns.abs() for returns in all_returns]
     absolute_returns_autocorr = get_returns_autocorrelation(absolute_returns, lags=35)
-    print("Abosolute Returns Autocorr:\n", absolute_returns_autocorr)
+    # print("Abosolute Returns Autocorr:\n", absolute_returns_autocorr)
 
 
     return returns_autocorr, absolute_returns_autocorr
@@ -80,11 +80,11 @@ def get_returns_autocorrelation(all_returns, lags):
 
 def visualise_stylized_facts(returns_autocorr):
     returns_autocorr = pd.DataFrame(returns_autocorr)
-    print("Returns Autocorr df:\n", returns_autocorr)
-    print("Indexes\n", returns_autocorr.index)
+    # print("Returns Autocorr df:\n", returns_autocorr)
+    # print("Indexes\n", returns_autocorr.index)
 
     avg_returns_autocorr = returns_autocorr.mean(axis=1)
-    print("avg_returns_autocorr: \n", avg_returns_autocorr)
+    # print("avg_returns_autocorr: \n", avg_returns_autocorr)
 
     returns_autocorr_mean = np.mean(avg_returns_autocorr[1:])
     print("returns_autocorr_mean: \n", returns_autocorr_mean)
@@ -106,16 +106,19 @@ if __name__ == '__main__':
     # Activate multiprocessing
     start_time = time.time()
     
-    # print("Start multiprocessing...")
+    print("Start multiprocessing...")
 
-    # optimal_thread_count = multiprocessing.cpu_count()
-    # pool = multiprocessing.Pool(optimal_thread_count)
+    optimal_thread_count = multiprocessing.cpu_count()
+    pool = multiprocessing.Pool(optimal_thread_count)
 
-    # iterations = 2
-    # pool.map(run_simulation, list(range(iterations)))
+    iterations = 2
+    pool.map(run_simulation, list(range(iterations)))
 
-    # pool.close()
-    # pool.join() 
+    pool.close()
+    pool.join()
+
+    # run_simulation(4)
+    # run_simulation(3)
 
     returns_autocorr, absolute_returns_autocorr = get_stylized_facts()
 
