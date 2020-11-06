@@ -51,6 +51,10 @@ class HeterogeneityInArtificialMarket(Model):
 
     TECHNICAL_NORM_FACTOR = 25.0
 
+    # For Technical Traders
+    MIN_PERIOD = 5
+    MAX_PERIOD = 14
+
     # For Market Maker
     INITIAL_VALUE = 100.0
     MU_VALUE = 0.0
@@ -97,7 +101,7 @@ class HeterogeneityInArtificialMarket(Model):
         self.market_maker = MarketMaker(initial_value=self.INITIAL_VALUE, mu_value=self.MU_VALUE,
                                         sigma_value=self.SIGMA_VALUE, mu_price=self.MU_PRICE,
                                         sigma_price=self.SIGMA_PRICE, liquidity=self.liquidity,
-                                        trend_size=self.TREND_MAGNITUDE, trend_start=self.TREND_START_TIME,
+                                        trend_size=self.TREND_SIZE, trend_start=self.TREND_START_TIME,
                                         trend_end=self.TREND_END_TIME)
 
         # List of trader objects
