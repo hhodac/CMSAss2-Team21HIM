@@ -10,7 +10,11 @@ class MarketMaker:
     """
 
     def __init__(self, initial_value=100.0, mu_value=0.0, sigma_value=0.25,
-                 mu_price=0.0, sigma_price=0.4, liquidity=400):
+                 mu_price=0.0, sigma_price=0.4, liquidity=400, trend_size=0.0, trend_start=0, trend_end=0):
+
+        self.trend_size = trend_size
+        self.trend_start = trend_start
+        self.trend_end = trend_end
 
         self.value_history = [initial_value]
         # mean of the fundamental price noise term (mu = 0.0)
@@ -156,6 +160,11 @@ class MarketMaker:
         try:
             last_value = self.value_history[-1]
             current_value = last_value + draw_from_normal(mu=self.mu_value, sigma=self.sigma_value)
+
+            current_time_step = len(self.value_history)
+
+            if self.trend_start <= current_time_step < self.trend_end:
+                current_value += self.trend_size
 
             if current_value < 0:
                 raise Exception("Fundamental value became negative")

@@ -10,7 +10,7 @@ def run_simulation(i):
     model = HeterogeneityInArtificialMarket(
         initial_fundamentalist=50,
         initial_technical=50,
-        initial_mimetic=50,
+        initial_mimetic=1,
         initial_noise=50,
         network_type="small world",
         verbose=False
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     optimal_thread_count = multiprocessing.cpu_count()
     pool = multiprocessing.Pool(optimal_thread_count)
 
-    iterations = 4
+    iterations = 1
     pool.map(run_simulation, list(range(iterations)))
 
     pool.close()
