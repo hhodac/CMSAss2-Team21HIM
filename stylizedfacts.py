@@ -1,154 +1,128 @@
 # From https://github.com/LCfP/Agent-Based-Stock-Market-Model
+from mesa.batchrunner import FixedBatchRunner
+from model import *
+import multiprocessing
+import time
+import os
+
 import pandas as pd
 import numpy as np
 import market
 
-def get_returns(prices):
-    returns = pd.Series(prices).pct_change()
-    return returns[1:]
-
-def get_returns_autocorrelation(returns, lags):
-    returns_autocorr = [returns.autocorr(lag=lag) for lag in range(lags)]
-    return np.mean(returns_autocorr[1:])
-     
-
-### ===================================
-
-"""This file contains functions and tests to calculate the stylized facts"""
-import pandas as pd
-import numpy as np
-from math import isclose
-from stockmarket.functions import div0
-
-# return autocorrelation close to zero after lag 1
-# calculate returns
-def calculate_close(orderbook_transaction_price_history):
-    closing_prices = []
-    for day in orderbook_transaction_price_history:
-        closing_prices.append(day[-1])
-    close = pd.Series(closing_prices).pct_change()
-    return close
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set_style("whitegrid")
 
 
-def calculate_returns(orderbook_transaction_price_history):
-    """Return the returns"""
-    closing_prices = []
-    for day in orderbook_transaction_price_history:
-        closing_prices.append(day[-1])
-    returns = pd.Series(closing_prices).pct_change()
-    return returns[1:]
+def run_simulation(i):
+    print("Iteration {} running...".format(i))
+    batch = FixedBatchRunner(model_cls=HeterogeneityInArtificialMarket, max_steps=50)
+    model = HeterogeneityInArtificialMarket(
+        initial_fundamentalist=50,
+        initial_technical=50,
+        initial_mimetic=50,
+        initial_noise=50,
+        network_type="small world",
+        verbose=False
+    )
+    batch.run_model(model)
+    df = model.datacollector.get_model_vars_dataframe()
+    file_name = "batch_record_"+str(i)+".csv"
+    df.to_csv(file_name, header=True, index=False)
+    print("Iteration {} completed.".format(i))
 
 
-# Test 1
-def zero_autocorrelation(returns, lags):
-    """returns wether average autocorrelation is much different from zero"""
-    autocorr_returns = [returns.autocorr(lag=lag) for lag in range(lags)]
-    # if mean autocorrelation are between -0.1 and 0.1
-    average_autocorrelation = np.mean(autocorr_returns[1:])
-    if (average_autocorrelation < 0.1) and (average_autocorrelation > -0.1):
-        return True, average_autocorrelation
-    else:
-        return False, np.inf
+def get_stylized_facts():
+    file_list = []
+    for file in os.listdir():
+        if file.endswith(".csv"):
+            file_list.append(os.path.join(".", file))
 
-# # Test 2
-# def fat_tails(returns):
-#     results = powerlaw.Fit(returns)
-#     alpha = results.power_law.alpha
-#     #print(alpha)
-#     if (alpha < 5) and (alpha > 3):
-#         return True, alpha
-#     else:
-#         return False, np.inf
+    df_list = []
+    for file in file_list:
+        _df = pd.read_csv(file, header=0)
+        _df_position = _df[["current_price"]]
+        df_list.append(_df_position)
 
-def fat_tails_kurtosis(returns):
-    series_returns = pd.Series(returns)
-    kurt = series_returns.kurtosis()
-    if kurt > 4:
-        return True, kurt
-    else:
-        return False, np.inf
+    n_rows, _ = df_list[0].shape
+    print("Current price:\n", df_list[0]["current_price"])
+    df = pd.concat(df_list, axis=0)
+    print("Concatenated:\n", df)
+    all_prices = df.current_price.to_numpy().reshape(len(file_list), n_rows)
+    print("Prices:\n", all_prices)
 
+    all_returns = get_returns(all_prices)
+    print("Returns:\n", all_returns)
 
-# Test 3
-def clustered_volatility(returns, lags):
-    absolute_returns = returns.abs()
-    autocorr_abs_returns = [absolute_returns.autocorr(lag=lag) for lag in range(lags)]
-    average_autocorrelation = np.mean(autocorr_abs_returns[1:])
-    #print(average_autocorrelation)
-    if (average_autocorrelation < 0.1) and (average_autocorrelation > -0.1):
-        return False, np.inf
-    else:
-        return True, average_autocorrelation
+    # Returns Autocorrelation
+    returns_autocorr = get_returns_autocorrelation(all_returns, lags=35)
+    print("Returns Autocorr:\n", returns_autocorr)
+
+    # Volatility clustering (Absolute returns autocorrelation)
+    absolute_returns = [returns.abs() for returns in all_returns]
+    absolute_returns_autocorr = get_returns_autocorrelation(absolute_returns, lags=35)
+    print("Abosolute Returns Autocorr:\n", absolute_returns_autocorr)
 
 
-# Test 4
-def long_memory(returns, hurst_function, lag1, lag2):
-    h = hurst_function(returns, lag1, lag2)
-    #print('h = ', h)
-    return not isclose(0.5, h, abs_tol=(10 ** -1 / 2)), h
+    return returns_autocorr, absolute_returns_autocorr
+
+def get_returns(all_prices):
+    all_returns = []
+    for prices in all_prices:
+        all_returns.append(pd.Series(prices).pct_change())
+    return all_returns
+
+def get_returns_autocorrelation(all_returns, lags):
+    returns_autocorr = {}
+    for i, returns in enumerate(all_returns):
+        returns_autocorr["iter_" + str(i)] = [returns[1:].autocorr(lag=lag) for lag in range(lags)]
+    return returns_autocorr
+
+def visualise_stylized_facts(returns_autocorr):
+    returns_autocorr = pd.DataFrame(returns_autocorr)
+    print("Returns Autocorr df:\n", returns_autocorr)
+    print("Indexes\n", returns_autocorr.index)
+
+    avg_returns_autocorr = returns_autocorr.mean(axis=1)
+    print("avg_returns_autocorr: \n", avg_returns_autocorr)
+
+    returns_autocorr_mean = np.mean(avg_returns_autocorr[1:])
+    print("returns_autocorr_mean: \n", returns_autocorr_mean)
+
+    fig, ax1 = plt.subplots(1, 1)
+    fig.tight_layout(pad=3.0)
+    ax1.plot(returns_autocorr.index, returns_autocorr.mean(axis=1), 'k-')
+    ax1.fill_between(returns_autocorr.index, 
+                 returns_autocorr.mean(axis=1) + returns_autocorr.std(axis=1), 
+                 returns_autocorr.mean(axis=1) - returns_autocorr.std(axis=1), 
+                 alpha=0.3, facecolor='black')
+    ax1.set_ylabel('Autocorrelation', fontsize='20')
+    ax1.set_xlabel('Lags', fontsize='20')
+    plt.ylim(-1, 1)
+    plt.show()
 
 
-# functions to calculate stylized facts
+if __name__ == '__main__':
+    # Activate multiprocessing
+    start_time = time.time()
+    
+    # print("Start multiprocessing...")
 
-def autocorrelation_returns(returns, lags):
-    """
-    Calculate the average autocorrelation in a returns time series
-    :param returns: time series of returns
-    :param lags: the lags over which the autocorrelation is to be calculated
-    :return: average autocorrelation
-    """
-    returns = pd.Series(returns)
-    autocorr_returns = [returns.autocorr(lag=lag) for lag in range(lags)]
-    average_autocorrelation = np.mean(autocorr_returns[1:])
-    return average_autocorrelation
+    # optimal_thread_count = multiprocessing.cpu_count()
+    # pool = multiprocessing.Pool(optimal_thread_count)
 
-def kurtosis(returns):
-    """
-    Calculates the kurtosis in a time series of returns
-    :param returns: time series of returns
-    :return: kurtosis
-    """
-    series_returns = pd.Series(returns)
-    return series_returns.kurtosis()
+    # iterations = 2
+    # pool.map(run_simulation, list(range(iterations)))
 
-def autocorrelation_abs_returns(returns, lags):
-    """
-    Calculates the average autocorrelation of absolute returns in a returns time series
-    :param returns: returns time series
-    :param lags: lags used to calculate autocorrelations
-    :return: average autocorrelation of absolute returns
-    """
-    returns = pd.Series(returns)
-    absolute_returns = returns.abs()
-    autocorr_abs_returns = [absolute_returns.autocorr(lag=lag) for lag in range(lags)]
-    return np.mean(autocorr_abs_returns[1:])
+    # pool.close()
+    # pool.join() 
 
-def hurst(price_series, lag1, lag2):
-    """
-    Calculates a measure of long memory, the hurst exponent
-    This is an adaption from:
-    https://robotwealth.com/demystifying-the-hurst-exponent-part-1/
-    """
-    # first remove any missing values from the price series
-    price_series = price_series.dropna()
+    returns_autocorr, absolute_returns_autocorr = get_stylized_facts()
 
-    lags = range(lag1, lag2)
-    std_differences = [np.sqrt(np.std(np.subtract(price_series[lag:], price_series[:-lag]))) for lag in lags]
-    m = np.polyfit(np.log(lags), np.log(std_differences), 1)
-    hurst = m[0]*2.0
-    return hurst
+    print("Completed!")
+    end_time = time.time()
+    duration = end_time - start_time
+    print("Processing time: {}".format(duration))
 
-def correlation_volume_volatility(volume, returns, window):
-    """
-    :param volume: volume time series
-    :param returns: returns time series
-    :param window: rolling window used to calculate return volatility
-    :return: correlation between returns volatility and volume
-    """
-    actual_simulated_correlation = []
-    volume = pd.Series(volume)
-    returns = pd.Series(returns)
-    roller_returns = returns.rolling(window)
-    returns_volatility = roller_returns.std(ddof=0)
-    correlation = returns_volatility.corr(volume)
-    return correlation
+    visualise_stylized_facts(returns_autocorr)
+    visualise_stylized_facts(absolute_returns_autocorr)
