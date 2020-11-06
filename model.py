@@ -2,6 +2,7 @@ import networkx as nx
 from networkx.generators.random_graphs import watts_strogatz_graph
 import random
 import statistics
+import numpy as np
 
 from mesa import Model
 from mesa.time import RandomActivation
@@ -14,6 +15,7 @@ from mimetic import Mimetic
 from noise import Noise
 
 from market import MarketMaker
+from utils import draw_from_uniform
 
 
 class HeterogeneityInArtificialMarket(Model):
@@ -54,6 +56,15 @@ class HeterogeneityInArtificialMarket(Model):
     # For Technical Traders
     MIN_PERIOD = 5
     MAX_PERIOD = 14
+
+    # For Noise Traders
+    BUY_PROBABILITY = 0.3           # should be b/w 0.0 and 0.5
+    SELL_PROBABILITY = 0.3          # should be b/w 0.0 and 0.5
+    HERDING_PROBABILITY = 0.8       # should be b/w 0.0 and 1.0
+    MIN_CLUSTER_SIZE = 5
+    MAX_CLUSTER_SIZE = 20
+    MU_ORDER_SIZE = 1.0
+    SIGMA_ORDER_SIZE = 0.5
 
     # For Market Maker
     INITIAL_VALUE = 100.0
@@ -110,6 +121,9 @@ class HeterogeneityInArtificialMarket(Model):
         self.mimetic_traders = []
         self.noise_traders = []
         self.all_traders = []
+
+        self.clustered_ntrader_ids = []
+        self.coordinated_ntrader_behaviour = dict()
 
         # Initialize traders & networks
         if network_type == "customize":
@@ -268,7 +282,38 @@ class HeterogeneityInArtificialMarket(Model):
         # print(network.number_of_edges())
         return NetworkGrid(network), network
 
+    def create_ntrader_clusters(self):
+        remaining_list = self.ntrader_ids.copy()
+
+        self.clustered_ntrader_ids = []
+
+        while len(remaining_list) >= 1:
+            sample_size = int(draw_from_uniform(lower=self.MIN_CLUSTER_SIZE, upper=self.MAX_CLUSTER_SIZE))
+            sample_list = np.random.choice(a=remaining_list, size=sample_size, replace=True)
+            sample_list = list(set(sample_list))
+            remaining_list = [id for id in remaining_list if id not in sample_list]
+
+            self.clustered_ntrader_ids.append(sample_list)
+
+    def coordinate_ntrader_clusters(self):
+        self.coordinated_ntrader_behaviour = {"buy": [], "sell": [], "hold": []}
+
+        for cluster in self.clustered_ntrader_ids:
+            random_float = draw_from_uniform(0.0, 1.0)
+
+            if 0.0 <= random_float < self.BUY_PROBABILITY:
+                # set cluster to buy and add to behaviour dictionary
+                self.coordinated_ntrader_behaviour["buy"] = self.coordinated_ntrader_behaviour["buy"] + cluster
+            elif self.BUY_PROBABILITY <= random_float < (self.BUY_PROBABILITY + self.SELL_PROBABILITY):
+                # set cluster to sell and add to behaviour dictionary
+                self.coordinated_ntrader_behaviour["sell"] = self.coordinated_ntrader_behaviour["sell"] + cluster
+            else:
+                # set cluster to hold and add to behaviour dictionary
+                self.coordinated_ntrader_behaviour["hold"] = self.coordinated_ntrader_behaviour["hold"] + cluster
+
     def step(self):
+        self.create_ntrader_clusters()
+        self.coordinate_ntrader_clusters()
         self.market_maker.update_price()
         self.schedule.step()
 

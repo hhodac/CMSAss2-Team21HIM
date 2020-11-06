@@ -22,7 +22,7 @@ class Mimetic(Trader):
 
         self.current_time = 0
 
-        self.evaluation_period = int(draw_from_uniform(model_reference.MIN_PERIOD, model_reference.MAX_PERIOD))
+        self.evaluation_period = int(draw_from_uniform(self.model_reference.MIN_PERIOD, self.model_reference.MAX_PERIOD))
 
     def trade(self, t):
         """Describe trading behavior of fundamentalist trader"""
