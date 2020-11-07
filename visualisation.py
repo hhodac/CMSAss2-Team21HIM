@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set_style("whitegrid")
 
-experiment = 'Experiment1.4'
+experiment = 'Experiment2.6'
 dir = os.path.join('.', 'Data', experiment)
 if not os.path.exists(dir):
     os.makedirs(dir)

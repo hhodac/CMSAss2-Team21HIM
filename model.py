@@ -27,10 +27,10 @@ class HeterogeneityInArtificialMarket(Model):
 
     # Global variables
     # For market maker V_{t} = V_{t-1} + N(0, sigma) + TREND_MAGNITUDE
-    TREND_SIZE = 0.0                                              # default for experiment1.x: 0.0
-    TREND_START_TIME = 100                                        # default for experiment1.x: 100
-    TREND_END_TIME = 200                                          # default for experiment1.x: 200
-    LOG_PRICE_FORMATION = True
+    TREND_SIZE = -10                                              # default for experiment1.x: 0.0
+    TREND_START_TIME = 500                                        # default for experiment1.x: 100
+    TREND_END_TIME = 501                                          # default for experiment1.x: 200
+    LOG_PRICE_FORMATION = False
 
     # For Fundamentalist Traders
     VALUE_PERCEPTION_MIN = -8.0
@@ -82,7 +82,7 @@ class HeterogeneityInArtificialMarket(Model):
     PARETO_XM = 1.0
     BASE_WEALTH = 1000.0
 
-    MU_RISK_TOLERANCE = 0.5                                       # default for experiment1.x: 0.5
+    MU_RISK_TOLERANCE = 0.4                                       # default for experiment1.x: 0.5
     SIGMA_RISK_TOLERANCE = 0.2
 
     def __init__(
