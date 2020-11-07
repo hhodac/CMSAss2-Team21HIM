@@ -1,5 +1,5 @@
 import inspect
-
+from math import exp
 from utils import draw_from_normal
 
 
@@ -10,7 +10,7 @@ class MarketMaker:
     """
 
     def __init__(self, initial_value=100.0, mu_value=0.0, sigma_value=0.25,
-                 mu_price=0.0, sigma_price=0.4, liquidity=400, trend_size=0.0, trend_start=0, trend_end=0):
+                 mu_price=0.0, sigma_price=0.4, liquidity=400, trend_size=0.0, trend_start=0, trend_end=0, log_price_formation=True):
 
         self.trend_size = trend_size
         self.trend_start = trend_start
@@ -52,6 +52,8 @@ class MarketMaker:
             "P_0": self.price_history[0], "mu_P": self.mu_price, "sigma_P": self.sigma_price,
             "liquidity": self.liquidity
         }
+
+        self.log_price_formation = log_price_formation
 
     def get_prices(self, low_limit=0, high_limit=None):
         """
@@ -181,8 +183,12 @@ class MarketMaker:
         try:
             last_price = self.price_history[-1]
             last_order = self.order_history[-1]
-            current_price = last_price + last_order / self.liquidity + draw_from_normal(mu=self.mu_price,
-                                                                                        sigma=self.sigma_price)
+
+            if self.log_price_formation:
+                current_price = last_price * exp(last_order/self.liquidity + draw_from_normal(mu=self.mu_price, sigma=self.sigma_price))
+            else:
+                current_price = last_price + last_order / self.liquidity + draw_from_normal(mu=self.mu_price,
+                                                                                            sigma=self.sigma_price)
 
             if current_price < 0:
                 raise Exception("Current price became negative")

@@ -30,6 +30,7 @@ class HeterogeneityInArtificialMarket(Model):
     TREND_SIZE = 0.0
     TREND_START_TIME = 100
     TREND_END_TIME = 200
+    LOG_PRICE_FORMATION = True
 
     # For Fundamentalist Traders
     VALUE_PERCEPTION_MIN = -8.0
@@ -115,7 +116,7 @@ class HeterogeneityInArtificialMarket(Model):
                                         sigma_value=self.SIGMA_VALUE, mu_price=self.MU_PRICE,
                                         sigma_price=self.SIGMA_PRICE, liquidity=self.liquidity,
                                         trend_size=self.TREND_SIZE, trend_start=self.TREND_START_TIME,
-                                        trend_end=self.TREND_END_TIME)
+                                        trend_end=self.TREND_END_TIME, log_price_formation=self.LOG_PRICE_FORMATION)
 
         # List of trader objects
         self.fundamental_traders = []
