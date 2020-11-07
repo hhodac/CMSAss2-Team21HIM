@@ -2,22 +2,28 @@ from mesa.batchrunner import FixedBatchRunner
 from model import *
 import multiprocessing
 import time
+import os
 
+dir_data = os.path.join('.', 'Data')
+experiment = 'Experiment2.2'
+dir_exp = os.path.join(dir_data, experiment)
+if not os.path.exists(dir_exp):
+    os.makedirs(dir_exp)
 
 def run_simulation(i):
     print("Iteration {} running...".format(i))
-    batch = FixedBatchRunner(model_cls=HeterogeneityInArtificialMarket, max_steps=100)
+    batch = FixedBatchRunner(model_cls=HeterogeneityInArtificialMarket, max_steps=1530)
     model = HeterogeneityInArtificialMarket(
-        initial_fundamentalist=100,
-        initial_technical=100,
-        initial_mimetic=100,
-        initial_noise=100,
+        initial_fundamentalist=40,
+        initial_technical=40,
+        initial_mimetic=40,
+        initial_noise=280,
         network_type="small world",
         verbose=False
     )
     batch.run_model(model)
     df = model.datacollector.get_model_vars_dataframe()
-    file_name = "batch_record_"+str(i)+".csv"
+    file_name = os.path.join(dir_exp, "batch_record_"+str(i)+".csv")
     df.to_csv(file_name, header=True, index=False)
     print("Iteration {} completed.".format(i))
 
@@ -27,10 +33,10 @@ if __name__ == '__main__':
     start_time = time.time()
     print("Start multiprocessing...")
 
-    optimal_thread_count = multiprocessing.cpu_count()
-    pool = multiprocessing.Pool(optimal_thread_count)
+    # optimal_thread_count = multiprocessing.cpu_count()
+    pool = multiprocessing.Pool(5)
 
-    iterations = 1
+    iterations = 10
     pool.map(run_simulation, list(range(iterations)))
 
     pool.close()

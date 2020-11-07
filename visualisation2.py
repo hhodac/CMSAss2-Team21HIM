@@ -52,15 +52,15 @@ for root, dirs, files in os.walk(dir):
 # Time vs. average price of all experiments
 plot_time_vs_mean_of_selected_columns(
     file_list=file_list,
-    select_columns=['current_price'],
-    title="Time vs. average price of all experiments",
+    select_columns=['price'],
+    title="Average price of all experiments",
     xrange=(1,1530)
 )
 
 # Time vs. average fundamental value of all experiments
 plot_time_vs_mean_of_selected_columns(
     file_list=file_list,
-    select_columns=['current_value'],
-    title="Time vs. average fundamental value of all experiments",
+    select_columns=['value'],
+    title="Average fundamental value of all experiments",
     xrange=(1,1530)
 )

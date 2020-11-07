@@ -27,10 +27,9 @@ class HeterogeneityInArtificialMarket(Model):
 
     # Global variables
     # For market maker V_{t} = V_{t-1} + N(0, sigma) + TREND_MAGNITUDE
-    TREND_SIZE = 0.0
-    TREND_START_TIME = 100
-    TREND_END_TIME = 200
-    LOG_PRICE_FORMATION = True
+    TREND_SIZE = 0.0                                              # default for experiment1.x: 0.0
+    TREND_START_TIME = 100                                        # default for experiment1.x: 100
+    TREND_END_TIME = 200                                          # default for experiment1.x: 200
 
     # For Fundamentalist Traders
     VALUE_PERCEPTION_MIN = -8.0
@@ -61,13 +60,13 @@ class HeterogeneityInArtificialMarket(Model):
     MAX_PERIOD = 14
 
     # For Noise Traders
-    BUY_PROBABILITY = 0.25           # should be b/w 0.0 and 0.5
-    SELL_PROBABILITY = 0.25          # should be b/w 0.0 and 0.5
-    HERDING_PROBABILITY = 0.6       # should be b/w 0.0 and 1.0
-    MIN_CLUSTER_SIZE = 10
-    MAX_CLUSTER_SIZE = 20
-    MU_ORDER_SIZE = 1.0
-    SIGMA_ORDER_SIZE = 0.5
+    BUY_PROBABILITY = 0.25           # should be b/w 0.0 and 0.5     default experiment1.x: 0.25
+    SELL_PROBABILITY = 0.25          # should be b/w 0.0 and 0.5     default experiment1.x: 0.25
+    HERDING_PROBABILITY = 0.60       # should be b/w 0.0 and 1.0     default experiment1.x: 0.6
+    MIN_CLUSTER_SIZE = 10                                          # default experiment1.x: 10
+    MAX_CLUSTER_SIZE = 20                                          # default experiment1.x: 20
+    MU_ORDER_SIZE = 1.0                                            # default experiment1.x: 1.0
+    SIGMA_ORDER_SIZE = 0.5                                         # default experiment1.x: 0.5
 
     # For Market Maker
     INITIAL_VALUE = 100.0
@@ -82,7 +81,7 @@ class HeterogeneityInArtificialMarket(Model):
     PARETO_XM = 1.0
     BASE_WEALTH = 1000.0
 
-    MU_RISK_TOLERANCE = 0.5
+    MU_RISK_TOLERANCE = 0.5                                       # default for experiment1.x: 0.5
     SIGMA_RISK_TOLERANCE = 0.2
 
     def __init__(
@@ -116,7 +115,7 @@ class HeterogeneityInArtificialMarket(Model):
                                         sigma_value=self.SIGMA_VALUE, mu_price=self.MU_PRICE,
                                         sigma_price=self.SIGMA_PRICE, liquidity=self.liquidity,
                                         trend_size=self.TREND_SIZE, trend_start=self.TREND_START_TIME,
-                                        trend_end=self.TREND_END_TIME, log_price_formation=self.LOG_PRICE_FORMATION)
+                                        trend_end=self.TREND_END_TIME)
 
         # List of trader objects
         self.fundamental_traders = []
