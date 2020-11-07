@@ -96,7 +96,7 @@ class Technical(Trader):
         if t >= (window - 1):
             return self.market_maker.get_prices(low_limit=(t - window + 1), high_limit=None)
         else:
-            return []
+            return self.market_maker.get_prices(low_limit=0, high_limit=None)
 
     def _compute_slope_difference(self, t):
         """
