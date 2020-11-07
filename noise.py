@@ -21,7 +21,6 @@ class Noise(Trader):
 
         if not ((0.0 <= self.buy_probability <= 0.5) and (0.0 <= self.sell_probability <= 0.5)):
             print("error in Noise trader probabilities")
-            # exit()
 
     def trade(self, t):
         # if t == 1:

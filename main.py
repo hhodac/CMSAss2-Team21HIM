@@ -10,7 +10,7 @@ def run_simulation(i):
     model = HeterogeneityInArtificialMarket(
         initial_fundamentalist=50,
         initial_technical=50,
-        initial_mimetic=1,
+        initial_mimetic=50,
         initial_noise=50,
         network_type="small world",
         verbose=False
