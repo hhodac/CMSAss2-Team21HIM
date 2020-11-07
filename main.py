@@ -19,7 +19,7 @@ def run_simulation(i):
         initial_mimetic=40,
         initial_noise=280,
         network_type="small world",
-        verbose=False
+        verbose=True
     )
     batch.run_model(model)
     df = model.datacollector.get_model_vars_dataframe()
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     # optimal_thread_count = multiprocessing.cpu_count()
     pool = multiprocessing.Pool(5)
 
-    iterations = 10
+    iterations = 1
     pool.map(run_simulation, list(range(iterations)))
 
     pool.close()

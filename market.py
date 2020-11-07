@@ -1,5 +1,5 @@
 import inspect
-from math import exp
+import numpy as np
 from utils import draw_from_normal
 
 
@@ -185,7 +185,7 @@ class MarketMaker:
             last_order = self.order_history[-1]
 
             if self.log_price_formation:
-                current_price = last_price * exp(last_order/self.liquidity + draw_from_normal(mu=self.mu_price, sigma=self.sigma_price))
+                current_price = last_price * np.exp( ( last_order / self.liquidity + draw_from_normal(mu=self.mu_price, sigma=self.sigma_price) ) / last_price )
             else:
                 current_price = last_price + last_order / self.liquidity + draw_from_normal(mu=self.mu_price,
                                                                                             sigma=self.sigma_price)
