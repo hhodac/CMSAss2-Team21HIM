@@ -16,12 +16,12 @@ sns.set_style("whitegrid")
 
 def run_simulation(i):
     print("Iteration {} running...".format(i))
-    batch = FixedBatchRunner(model_cls=HeterogeneityInArtificialMarket, max_steps=1000)
+    batch = FixedBatchRunner(model_cls=HeterogeneityInArtificialMarket, max_steps=10)
     model = HeterogeneityInArtificialMarket(
         initial_fundamentalist=50,
         initial_technical=50,
-        initial_mimetic=0,
-        initial_noise=0,
+        initial_mimetic=50,
+        initial_noise=50,
         network_type="small world",
         verbose=False
     )
@@ -63,6 +63,10 @@ def get_stylized_facts():
     absolute_returns_autocorr = get_returns_autocorrelation(absolute_returns, lags=35)
     # print("Abosolute Returns Autocorr:\n", absolute_returns_autocorr)
 
+    # # Long term memory for Return Autocorrelations
+    # hurst_return_autocorr = get_hurst_exponent(returns_autocorr, lag_1=2, lag_2=20)
+    # # Long term memory for Volatility clustering (Absolute returns autocorrelation)
+    # hurst_abs_return_autocorr = get_hurst_exponent(absolute_returns_autocorr, lag_1=2, lag_2=20)
 
     return returns_autocorr, absolute_returns_autocorr
 
@@ -78,7 +82,20 @@ def get_returns_autocorrelation(all_returns, lags):
         returns_autocorr["iter_" + str(i)] = [returns[1:].autocorr(lag=lag) for lag in range(lags)]
     return returns_autocorr
 
-def visualise_stylized_facts(returns_autocorr):
+def get_hurst_exponent(returns, lag_1, lag_2):
+    """
+    Calculates a measure of long memory with the hurst exponent.
+    This is an adaption from:
+    https://robotwealth.com/demystifying-the-hurst-exponent-part-1/
+    """
+    returns = returns.dropna() # Remove any missing values from the price series
+    lags = range(lag_1, lag_2)
+    std_differences = [np.sqrt(np.std(np.subtract(returns[lag:], returns[:-lag]))) for lag in lags]
+    m = np.polyfit(np.log(lags), np.log(std_differences), 1)
+    hurst = m[0]*2.0
+    return hurst
+
+def visualise_stylized_facts(returns_autocorr, title):
     returns_autocorr = pd.DataFrame(returns_autocorr)
     # print("Returns Autocorr df:\n", returns_autocorr)
     # print("Indexes\n", returns_autocorr.index)
@@ -99,6 +116,8 @@ def visualise_stylized_facts(returns_autocorr):
     ax1.set_ylabel('Autocorrelation', fontsize='20')
     ax1.set_xlabel('Lags', fontsize='20')
     plt.ylim(-1, 1)
+    dir = os.path.join(".", "Data", "Experiment1")
+    plt.savefig(os.path.join(dir, title+".png"))
     plt.show()
 
 
@@ -127,5 +146,5 @@ if __name__ == '__main__':
     duration = end_time - start_time
     print("Processing time: {}".format(duration))
 
-    visualise_stylized_facts(returns_autocorr)
-    visualise_stylized_facts(absolute_returns_autocorr)
+    visualise_stylized_facts(returns_autocorr, "returns_autocorr")
+    visualise_stylized_facts(absolute_returns_autocorr, "absolute_returns_autocorr")

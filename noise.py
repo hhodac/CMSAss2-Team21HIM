@@ -24,8 +24,8 @@ class Noise(Trader):
             # exit()
 
     def trade(self, t):
-        if t == 1:
-            exit()
+        # if t == 1:
+        #     exit()
         if draw_from_uniform(0.0, 1.0) <= self.herding_probability:
             # participate in herding
             ntrader_id = self.unique_id

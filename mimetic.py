@@ -38,7 +38,7 @@ class Mimetic(Trader):
 
             if (time_quotient >= 1) and (time_remainder == 0):
 
-                print("time_step: ", self.current_time)
+                # print("time_step: ", self.current_time)
 
                 self._sort_neighbours()
 
@@ -88,15 +88,15 @@ class Mimetic(Trader):
         best_trader_net_wealth = self.neighbour_list[0][1]
         best_trader_net_order = self.neighbour_list[0][2]
 
-        print("best_id: {}, best_net_wealth: {}, best_net_order: {}".format(best_trader_id, best_trader_net_wealth,
-                                                                            best_trader_net_order))
+        # print("best_id: {}, best_net_wealth: {}, best_net_order: {}".format(best_trader_id, best_trader_net_wealth,
+        #                                                                     best_trader_net_order))
 
         best_trader_index = self.neighbours.index(best_trader)
 
         self.weights[best_trader_index] = self.weights[best_trader_index] + 1.0
         self.softmax_weights = np.exp(self.weights) / sum(np.exp(self.weights))
 
-        print("weights: {}, probabilities: {}".format(self.weights, self.softmax_weights))
+        # print("weights: {}, probabilities: {}".format(self.weights, self.softmax_weights))
 
     def _choose_order(self):
         chosen_trader = np.random.choice(a=self.neighbours, size=1, replace=True, p=self.softmax_weights)[0]
@@ -104,7 +104,7 @@ class Mimetic(Trader):
 
         chosen_trader_order = [tr for tr in self.neighbour_list if tr[0].unique_id == chosen_trader_id][0][2]
 
-        print("chosen_id: {}, chosen_trader: {}, chosen_order: {}".format(chosen_trader_id, chosen_trader, chosen_trader_order))
+        # print("chosen_id: {}, chosen_trader: {}, chosen_order: {}".format(chosen_trader_id, chosen_trader, chosen_trader_order))
 
         return chosen_trader_order
 
