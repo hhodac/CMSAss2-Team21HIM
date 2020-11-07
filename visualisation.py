@@ -10,8 +10,46 @@ def get_file_index(file_path):
     idx = int(chunks[1].split("_")[-1])
     return idx
 
-def plot_time_vs_mean_of_selected_columns(file_list, select_columns, title, xrange):
+def get_normalisation_factor(max_all_position_ftrader, all_position_trader, trader):
+    mean_all_position_trader = np.mean(all_position_trader, axis=0)
+    # print("mean_all_position_" + trader + ":\n", mean_all_position_trader)
+
+    max_all_position_trader = max(np.abs(mean_all_position_trader))
+    print("max_all_position_" + trader + ":\n", max_all_position_trader)
+
+    ratio = max_all_position_ftrader/max_all_position_trader
+    print("ratio_" + trader + ":\n", ratio)
+
+    return ratio
+
+
+def do_calibration(file_list, df_list_positions):
+    df_positions = pd.concat(df_list_positions, axis=0, ignore_index=True)
+    n_rows, _ = df_list_positions[0].shape
+
+    # Fundamentalists positions
+    all_position_ftrader = df_positions.position_ftrader_mean.to_numpy().reshape(len(file_list), n_rows)
+    mean_all_position_ftrader = np.mean(all_position_ftrader, axis=0)
+    # print("mean_all_position_ftrader:\n", mean_all_position_ftrader)
+    max_all_position_ftrader = max(mean_all_position_ftrader)
+    print("max_all_position_ftrader:\n", max_all_position_ftrader)
+
+    # Technicals positions
+    all_position_ttrader = df_positions.position_ttrader_mean.to_numpy().reshape(len(file_list), n_rows)
+    get_normalisation_factor(max_all_position_ftrader, all_position_ttrader, "technical")
+
+    # Mimetics positions
+    all_position_mtrader = df_positions.position_mtrader_mean.to_numpy().reshape(len(file_list), n_rows)
+    get_normalisation_factor(max_all_position_ftrader, all_position_mtrader, "mimetic")
+
+    # Noise positions
+    all_position_ntrader = df_positions.position_ntrader_mean.to_numpy().reshape(len(file_list), n_rows)
+    get_normalisation_factor(max_all_position_ftrader, all_position_ntrader, "noise")
+
+
+def plot_time_vs_mean_of_selected_columns(file_list, select_columns, title, xrange, calibration=False):
     df_list = []
+    df_list_positions = []
     for file in file_list:
         _df = pd.read_csv(file, header=0)
         _n_rows, _ = _df.shape
@@ -21,8 +59,15 @@ def plot_time_vs_mean_of_selected_columns(file_list, select_columns, title, xran
             _df_select['type'] = col
             _df_select = _df_select.rename(columns={col: "data"})
             df_list.append(_df_select)
+        
+        if calibration:
+            _df_position = _df[["position_ftrader_mean", "position_ttrader_mean", "position_mtrader_mean", "position_ntrader_mean"]]
+            df_list_positions.append(_df_position)
 
     df = pd.concat(df_list, axis=0, ignore_index=True)
+
+    if calibration:
+        do_calibration(file_list, df_list_positions)
 
     plt.figure(figsize=(15.0, 9.0))
     sns.lineplot(data=df, x="step", y="data", ci="sd", hue="type")
@@ -36,7 +81,8 @@ def plot_time_vs_mean_of_selected_columns(file_list, select_columns, title, xran
     plt.savefig(os.path.join(dir, title+".png"))
     plt.show()
 
-dir = os.path.join(".", "Data", "Experiment5")
+# dir = os.path.join(".", "Data", "Experiment5")
+dir = "./"
 
 file_list = []
 for file in os.listdir(dir):
@@ -61,60 +107,61 @@ plot_time_vs_mean_of_selected_columns(
         'position_ntrader_mean',
     ],
     title="Time vs. average net position of traders",
-    xrange=(1,1530)
+    xrange=(1,1000),
+    calibration=True
 )
 
-# Time vs. average order of traders
-plot_time_vs_mean_of_selected_columns(
-    file_list=file_list,
-    select_columns=[
-        'order_ftrader_mean',
-        'order_ttrader_mean',
-        'order_mtrader_mean',
-        'order_ntrader_mean',
-    ],
-    title="Time vs. average order of traders",
-    xrange=(1,1530)
-)
+# # Time vs. average order of traders
+# plot_time_vs_mean_of_selected_columns(
+#     file_list=file_list,
+#     select_columns=[
+#         'order_ftrader_mean',
+#         'order_ttrader_mean',
+#         'order_mtrader_mean',
+#         'order_ntrader_mean',
+#     ],
+#     title="Time vs. average order of traders",
+#     xrange=(1,1530)
+# )
 
-# Time vs. average porfolio of traders
-plot_time_vs_mean_of_selected_columns(
-    file_list=file_list,
-    select_columns=[
-        'portfolio_ftrader_mean',
-        'portfolio_ttrader_mean',
-        'portfolio_mtrader_mean',
-        'portfolio_ntrader_mean',
-    ],
-    title="Time vs. average porfolio of traders",
-    xrange=(1,1530)
-)
+# # Time vs. average porfolio of traders
+# plot_time_vs_mean_of_selected_columns(
+#     file_list=file_list,
+#     select_columns=[
+#         'portfolio_ftrader_mean',
+#         'portfolio_ttrader_mean',
+#         'portfolio_mtrader_mean',
+#         'portfolio_ntrader_mean',
+#     ],
+#     title="Time vs. average porfolio of traders",
+#     xrange=(1,1530)
+# )
 
-# Time vs. average cash of traders
-plot_time_vs_mean_of_selected_columns(
-    file_list=file_list,
-    select_columns=[
-        'cash_ftrader_mean',
-        'cash_ttrader_mean',
-        'cash_mtrader_mean',
-        'cash_ntrader_mean',
-    ],
-    title="Time vs. average cash of traders",
-    xrange=(1,1530)
-)
+# # Time vs. average cash of traders
+# plot_time_vs_mean_of_selected_columns(
+#     file_list=file_list,
+#     select_columns=[
+#         'cash_ftrader_mean',
+#         'cash_ttrader_mean',
+#         'cash_mtrader_mean',
+#         'cash_ntrader_mean',
+#     ],
+#     title="Time vs. average cash of traders",
+#     xrange=(1,1530)
+# )
 
-# Time vs. average wealth of traders
-plot_time_vs_mean_of_selected_columns(
-    file_list=file_list,
-    select_columns=[
-        'wealth_ftrader_mean',
-        'wealth_ttrader_mean',
-        'wealth_mtrader_mean',
-        'wealth_ntrader_mean',
-    ],
-    title="Time vs. average wealth of traders",
-    xrange=(1,1530)
-)
+# # Time vs. average wealth of traders
+# plot_time_vs_mean_of_selected_columns(
+#     file_list=file_list,
+#     select_columns=[
+#         'wealth_ftrader_mean',
+#         'wealth_ttrader_mean',
+#         'wealth_mtrader_mean',
+#         'wealth_ntrader_mean',
+#     ],
+#     title="Time vs. average wealth of traders",
+#     xrange=(1,1530)
+# )
 
 ##############
 # # Plot sample fundamental position vs. technical position

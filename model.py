@@ -51,7 +51,9 @@ class HeterogeneityInArtificialMarket(Model):
     EXIT_WINDOW_MIN = 5
     EXIT_WINDOW_MAX = 30
 
-    TECHNICAL_NORM_FACTOR = 25.0
+    TECHNICAL_NORM_FACTOR = 25
+    # MIMETIC_NORM_FACTOR = 17.5
+    # NOISE_NORM_FACTOR = 1200
 
     # For Technical Traders
     MIN_PERIOD = 5
@@ -364,7 +366,7 @@ class HeterogeneityInArtificialMarket(Model):
             return self.market_maker.get_current_order()
         else:
             print("Error, unknown param_name in get_market_parameter")
-
+            exit()
 
     def get_agent_stats(self, trader_type, param_name, stats_type):
         trader_list = []
@@ -380,7 +382,7 @@ class HeterogeneityInArtificialMarket(Model):
             trader_list = self.all_traders
         else:
             print("Error, unknown agent type")
-
+            exit()
 
         all_parameters = []
         for trader in trader_list:
@@ -396,21 +398,24 @@ class HeterogeneityInArtificialMarket(Model):
                 all_parameters.append(trader.get_net_wealth(self.schedule.time))
             else:
                 print("Error, unknown parameter type")
+                exit()
 
-
-        if stats_type == 'max':
-            return max(all_parameters)
-        elif stats_type == 'min':
-            return min(all_parameters)
-        elif stats_type == 'sum':
-            return sum(all_parameters)
-        elif stats_type == 'mean':
-            return statistics.mean(all_parameters)
-        elif stats_type == 'median':
-            return statistics.median(all_parameters)
-        elif stats_type == 'std':
-            return statistics.stdev(all_parameters) / len(all_parameters)
+        if len(all_parameters) > 0:
+            if stats_type == 'max':
+                return max(all_parameters)
+            elif stats_type == 'min':
+                return min(all_parameters)
+            elif stats_type == 'sum':
+                return sum(all_parameters)
+            elif stats_type == 'mean':
+                return statistics.mean(all_parameters)
+            elif stats_type == 'median':
+                return statistics.median(all_parameters)
+            elif stats_type == 'std':
+                return statistics.stdev(all_parameters) / len(all_parameters)
+            else:
+                print("Error, unknown stats type")
+                exit()
         else:
-            print("Error, unknown stats type")
-
+            return None
 
