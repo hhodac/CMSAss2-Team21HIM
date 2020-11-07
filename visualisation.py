@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set_style("whitegrid")
 
-experiment = 'Experiment1.1'
+experiment = 'Experiment1.4'
 dir = os.path.join('.', 'Data', experiment)
 if not os.path.exists(dir):
     os.makedirs(dir)
@@ -55,16 +55,33 @@ def do_calibration(file_list, df_list_positions):
     get_normalisation_factor(max_all_position_ftrader, all_position_ntrader, "noise")
 
 
-def plot_time_vs_mean_of_selected_columns(file_list, select_columns, title, xrange, calibration=False):
+def plot_time_vs_selected_features(file_list, select_columns, title, xrange, ylabel, normalize=False, calibration=False):
     df_list = []
     df_list_positions = []
     for file in file_list:
         _df = pd.read_csv(file, header=0)
-        _n_rows, _ = _df.shape
+        if normalize:
+            for col in select_columns:
+                initial_value = _df.loc[:,col][0]
+                if initial_value != 0:
+                    _df[col] = _df[col].div(initial_value)
+                else:
+                    print('initial value is zero')
 
         for col in select_columns:
             _df_select = _df.loc[:,['step', col]]
-            _df_select['type'] = col
+            if col.find("ftrader")>=0:
+                _df_select['type'] = "fundamentalist"
+            elif col.find("ttrader")>=0:
+                _df_select['type'] = "technical"
+            elif col.find("mtrader")>=0:
+                _df_select['type'] = "mimetic"
+            elif col.find("ntrader")>=0:
+                _df_select['type'] = "noise"
+            elif col.find("all")>=0:
+                _df_select['type'] = "all"
+            else:
+                _df_select['type'] = col
             _df_select = _df_select.rename(columns={col: "data"})
             df_list.append(_df_select)
 
@@ -80,38 +97,8 @@ def plot_time_vs_mean_of_selected_columns(file_list, select_columns, title, xran
     plt.figure(figsize=(15.0, 9.0))
     sns.lineplot(data=df, x="step", y="data", ci="sd", hue="type")
     plt.title(title, fontsize=25)
-    plt.xlabel("Step", fontsize=20)
-    plt.ylabel("Position", fontsize=20)
-    plt.yticks(fontsize=16)
-    plt.xticks(fontsize=16)
-    plt.xlim(xrange[0], xrange[1])
-    plt.legend(loc="best", fontsize=20, labels=['fundamentalist','technical','mimetic','noise'])
-    plt.savefig(os.path.join(dir, title+".png"))
-    plt.show()
-
-def plot_time_vs_price_value(file_list, xrange):
-    title = "Time vs. average price and fundamental value"
-    df_list = []
-    for file in file_list:
-        _df = pd.read_csv(file, header=0)
-        _n_rows, _ = _df.shape
-
-        for col in ['current_price', 'current_value']:
-            _df_select = _df.loc[:,['step', col]]
-            if col.find("price")>=0:
-                _df_select['type'] = "Price"
-            elif col.find("value")>=0:
-                _df_select['type'] = "Value"
-            _df_select = _df_select.rename(columns={col: "data"})
-            df_list.append(_df_select)
-
-    df = pd.concat(df_list, axis=0, ignore_index=True)
-
-    plt.figure(figsize=(15.0, 9.0))
-    sns.lineplot(data=df, x="step", y="data", ci="sd", hue="type")
-    plt.title(title, fontsize=25)
-    plt.xlabel("Step", fontsize=20)
-    plt.ylabel("Position", fontsize=20)
+    plt.xlabel("step", fontsize=20)
+    plt.ylabel(ylabel, fontsize=20)
     plt.yticks(fontsize=16)
     plt.xticks(fontsize=16)
     plt.xlim(xrange[0], xrange[1])
@@ -125,71 +112,136 @@ for file in os.listdir(dir):
         file_list.append(os.path.join(dir, file))
 
 # Time vs. average price and fundamental value
-plot_time_vs_price_value(file_list=file_list, xrange=(1,1530))
-
-# Time vs. average net position of traders
-plot_time_vs_mean_of_selected_columns(
+plot_time_vs_selected_features(
     file_list=file_list,
-    select_columns=[
-        'position_ftrader_mean',
-        'position_ttrader_mean',
-        'position_mtrader_mean',
-        'position_ntrader_mean',
-    ],
-    title="Time vs. average net position of traders",
-    xrange=(1,1530),
-    calibration=True
-)
-
-# Time vs. average order of traders
-plot_time_vs_mean_of_selected_columns(
-    file_list=file_list,
-    select_columns=[
-        'order_ftrader_mean',
-        'order_ttrader_mean',
-        'order_mtrader_mean',
-        'order_ntrader_mean',
-    ],
-    title="Time vs. average order of traders",
+    select_columns=['price', 'value'],
+    title="Average price and fundamental value of traders as a function of time",
+    ylabel="price/value",
     xrange=(1,1530)
 )
 
-# Time vs. average porfolio of traders
-plot_time_vs_mean_of_selected_columns(
-    file_list=file_list,
-    select_columns=[
-        'portfolio_ftrader_mean',
-        'portfolio_ttrader_mean',
-        'portfolio_mtrader_mean',
-        'portfolio_ntrader_mean',
-    ],
-    title="Time vs. average porfolio of traders",
-    xrange=(1,1530)
-)
+def generate_selected_columns(prefix, suffix):
+    default_targets = ['ftrader', 'ttrader', 'mtrader', 'ntrader', 'all']
+    generate_columns = []
+    for target in default_targets:
+        generate_columns.append("_".join([prefix, target, suffix]))
+    return generate_columns
 
-# Time vs. average cash of traders
-plot_time_vs_mean_of_selected_columns(
-    file_list=file_list,
-    select_columns=[
-        'cash_ftrader_mean',
-        'cash_ttrader_mean',
-        'cash_mtrader_mean',
-        'cash_ntrader_mean',
-    ],
-    title="Time vs. average cash of traders",
-    xrange=(1,1530)
-)
+experiment_list = [# 'title', 'prefix', 'suffix'
+    #Wealth
+    ['Normalized total wealth', 'wealth', 'sum', True],
+    ['Normalized median wealth', 'wealth', 'median', True],
+    ['Normalized standard deviation of wealth', 'wealth', 'std', True],
+    #Position
+    ['Total position', 'position', 'sum', False],
+    ['Median position', 'position', 'median', False],
+    ['Standard deviation of position', 'position', 'std', False],
+    #Portfolio
+    ['Total portfolio', 'portfolio', 'sum', False],
+    ['Median portfolio', 'portfolio', 'median', False],
+    ['Standard deviation of portfolio', 'portfolio', 'std', False],
+    #Cash
+    ['Normalized total cash', 'cash', 'sum', True],
+    ['Normalized median cash', 'cash', 'median', True],
+    ['Normalized standard deviation of cash', 'cash', 'std', True],
+    #Standard deviation
+    ['Total order', 'order', 'sum', False],
+    ['Median order', 'order', 'median', False],
+    ['Standard deviation of order', 'order', 'std', False],
+]
 
-# Time vs. average wealth of traders
-plot_time_vs_mean_of_selected_columns(
-    file_list=file_list,
-    select_columns=[
-        'wealth_ftrader_mean',
-        'wealth_ttrader_mean',
-        'wealth_mtrader_mean',
-        'wealth_ntrader_mean',
-    ],
-    title="Time vs. average wealth of traders",
-    xrange=(1,1530)
-)
+for title, prefix, suffix, normalize in experiment_list:
+    plot_time_vs_selected_features(
+        file_list=file_list,
+        select_columns=generate_selected_columns(prefix, suffix),
+        title=title+" of traders as a function of time",
+        ylabel=title,
+        normalize=normalize,
+        xrange=(1,1530)
+    )
 
+# # Wealth vs. time for each trader type (and for all traders, in black)
+# # Total
+# plot_time_vs_mean_of_selected_columns(
+#     file_list=file_list,
+#     select_columns=[
+#         'wealth_ftrader_sum',
+#         'wealth_ttrader_sum',
+#         'wealth_mtrader_sum',
+#         'wealth_ntrader_sum',
+#         'wealth_all_sum'
+#     ],
+#     title="Time vs. total wealth of traders",
+#     xrange=(1,1530)
+# )
+#
+# # Median
+# plot_time_vs_mean_of_selected_columns(
+#     file_list=file_list,
+#     select_columns=[
+#         'wealth_ftrader_median',
+#         'wealth_ttrader_median',
+#         'wealth_mtrader_median',
+#         'wealth_ntrader_median',
+#         'wealth_all_median'
+#     ],
+#     title="Time vs. median wealth of traders",
+#     xrange=(1,1530)
+# )
+#
+# # Standard deviation
+# plot_time_vs_mean_of_selected_columns(
+#     file_list=file_list,
+#     select_columns=[
+#         'wealth_ftrader_std',
+#         'wealth_ttrader_std',
+#         'wealth_mtrader_std',
+#         'wealth_ntrader_std',
+#         'wealth_all_std'
+#     ],
+#     title="Time vs. standard deviation of wealth of traders",
+#     xrange=(1,1530)
+# )
+#
+# # Position vs. time for each trader type (and for all traders, in black)
+# # Total
+# plot_time_vs_mean_of_selected_columns(
+#     file_list=file_list,
+#     select_columns=[
+#         'position_ftrader_sum',
+#         'position_ttrader_sum',
+#         'position_mtrader_sum',
+#         'position_ntrader_sum',
+#         'position_all_sum'
+#     ],
+#     title="Time vs. total position of traders",
+#     xrange=(1,1530)
+# )
+#
+# # Median
+# plot_time_vs_mean_of_selected_columns(
+#     file_list=file_list,
+#     select_columns=[
+#         'wealth_ftrader_median',
+#         'wealth_ttrader_median',
+#         'wealth_mtrader_median',
+#         'wealth_ntrader_median',
+#         'wealth_all_median'
+#     ],
+#     title="Time vs. median wealth of traders",
+#     xrange=(1,1530)
+# )
+#
+# # Standard deviation
+# plot_time_vs_mean_of_selected_columns(
+#     file_list=file_list,
+#     select_columns=[
+#         'wealth_ftrader_std',
+#         'wealth_ttrader_std',
+#         'wealth_mtrader_std',
+#         'wealth_ntrader_std',
+#         'wealth_all_std'
+#     ],
+#     title="Time vs. standard deviation of wealth of traders",
+#     xrange=(1,1530)
+# )

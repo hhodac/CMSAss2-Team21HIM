@@ -185,7 +185,8 @@ class MarketMaker:
                                                                                         sigma=self.sigma_price)
 
             if current_price < 0:
-                raise Exception("Current price became negative")
+                current_price = 0
+                # raise Exception("Current price became negative")
 
             self.price_history.append(current_price)
         except Exception as e:
