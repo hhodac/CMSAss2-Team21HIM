@@ -364,7 +364,7 @@ class HeterogeneityInArtificialMarket(Model):
             return self.market_maker.get_current_order()
         else:
             print("Error, unknown param_name in get_market_parameter")
-            exit()
+
 
     def get_agent_stats(self, trader_type, param_name, stats_type):
         trader_list = []
@@ -380,7 +380,7 @@ class HeterogeneityInArtificialMarket(Model):
             trader_list = self.all_traders
         else:
             print("Error, unknown agent type")
-            exit()
+
 
         all_parameters = []
         for trader in trader_list:
@@ -396,7 +396,7 @@ class HeterogeneityInArtificialMarket(Model):
                 all_parameters.append(trader.get_net_wealth(self.schedule.time))
             else:
                 print("Error, unknown parameter type")
-                exit()
+
 
         if stats_type == 'max':
             return max(all_parameters)
@@ -412,5 +412,5 @@ class HeterogeneityInArtificialMarket(Model):
             return statistics.stdev(all_parameters) / len(all_parameters)
         else:
             print("Error, unknown stats type")
-            exit()
+
 
