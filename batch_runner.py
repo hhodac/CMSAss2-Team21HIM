@@ -8,10 +8,10 @@ def run_simulation(i):
     print("Iteration {} running...".format(i))
     batch = FixedBatchRunner(model_cls=HeterogeneityInArtificialMarket, max_steps=150)
     model = HeterogeneityInArtificialMarket(
-        initial_fundamentalist=50,
-        initial_technical=50,
-        initial_mimetic=50,
-        initial_noise=50,
+        initial_fundamentalist=100,
+        initial_technical=100,
+        initial_mimetic=100,
+        initial_noise=100,
         network_type="small world",
         verbose=False
     )
