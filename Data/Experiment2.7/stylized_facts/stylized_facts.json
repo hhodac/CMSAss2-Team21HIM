@@ -1,0 +1,8 @@
+{
+    "Absolute Returns Autocorrelation mean": 0.03110251074752312,
+    "Average correlation between volume and volatility": 0.13461370140715145,
+    "Fat Tails (Average Kurtoris)": 0.24724451134883405,
+    "Long term memory for Return Autocorrelations (hurst)": 0.016935791496154096,
+    "Long term memory for Volatility clustering (hurst)": 0.008818803995185538,
+    "Returns Autocorrelation mean": -0.004068172967670139
+}

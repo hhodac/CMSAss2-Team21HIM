@@ -27,9 +27,9 @@ class HeterogeneityInArtificialMarket(Model):
 
     # Global variables
     # For market maker V_{t} = V_{t-1} + N(0, sigma) + TREND_MAGNITUDE
-    TREND_SIZE = -10                                              # default for experiment1.x: 0.0
+    TREND_SIZE = 0.2                                              # default for experiment1.x: 0.0
     TREND_START_TIME = 500                                        # default for experiment1.x: 100
-    TREND_END_TIME = 501                                          # default for experiment1.x: 200
+    TREND_END_TIME = 600                                          # default for experiment1.x: 200
     LOG_PRICE_FORMATION = False
 
     # For Fundamentalist Traders

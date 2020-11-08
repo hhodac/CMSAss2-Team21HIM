@@ -5,7 +5,7 @@ import time
 import os
 
 dir_data = os.path.join('.', 'Data')
-experiment = 'Experiment2.8'
+experiment = 'Experiment2.9'
 dir_exp = os.path.join(dir_data, experiment)
 if not os.path.exists(dir_exp):
     os.makedirs(dir_exp)

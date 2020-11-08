@@ -208,7 +208,7 @@ if __name__ == '__main__':
     global dir
     dir = os.path.join(".", "Data", "Experiment2.1", "stylized_facts")
 
-    for i in range(2, 7):
+    for i in range(7, 9):
         dir = os.path.join(".", "Data", "Experiment2."+str(i), "stylized_facts")
         if not os.path.exists(dir):
             os.makedirs(dir)
